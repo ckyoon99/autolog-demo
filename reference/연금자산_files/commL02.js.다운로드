@@ -1,0 +1,77 @@
+/**
+ * 펀드 - 공통
+ * 오늘본펀드 팝업(L)
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.17 | 이민영 | 최초생성 |
+ */
+(function (){
+
+si.controller('commL02', function($vo, $svc) {
+	var log = $svc.logger('commL02');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var location = $svc.get('location');
+	var fund = $svc.get('fund');
+
+	var lc = {};	// 로컬변수
+	$vo.vl = {};	// ko 변수	관리
+	$vo.on = {};	// ko 이벤트 관리
+
+	// 변수 바인딩
+	// ==================================================
+	lc.prm	= lpopup.getParam($vo)||{};		//	넘어온 파라메터
+	log('getParam', lc.prm);
+	
+	// 변수 바인딩
+	// ==================================================
+	$vo.vl.productList = ko.observableArray([]);
+	
+	var cookie = fund.fundCookieMgr();
+	lc.fundList = cookie.get('todayFundList');
+	// 이벤트 바인딩
+	// ==================================================
+	//기간별 판매액상위 20개 조회
+	$vo.on.searchList = function(){
+		//오늘본 펀드 조회
+		var param = {
+			fundList : 	lc.fundList
+			
+		};
+		log(">>>>>>>>>>>>> req param :: ", param);
+		http.post('/siw/wealth-management/fund/fund-comm02/data.do', param).then(function(rs){
+			log(rs);
+			if(rs){
+				if(rs['errorCode'] != 'Z0001'){
+					lpopup.alert(rs['errorMsg']);
+					$vo.vl.productList([]);
+				}else{
+					if(rs['반복데이타0']){
+						$vo.vl.productList(rs['반복데이타0']);
+					}
+				}
+			}
+		});
+	};
+	
+	$vo.on.close = function() {
+		lpopup.close($vo, false);
+	};
+	
+	$vo.on.ok = function() {
+		lpopup.close($vo, true);
+	};
+	
+	// 초기화 함수
+	init();
+	
+	// 로컬 함수
+	// ==================================================
+	function init() {
+		$vo.on.searchList();
+	}
+});
+
+})();

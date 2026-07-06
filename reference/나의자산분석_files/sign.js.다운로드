@@ -1,0 +1,617 @@
+/**
+ * 인증서 서명관련 함수
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.04.04 | 박호원 | 최초생성 |
+ */
+(function (){
+
+	
+//library
+si.util.load("/siw/solution/app/", "vestsign.js");
+si.util.load("/siw/solution/app/", "activexAdp.js");
+si.util.load("/siw/solution/app/js/", "koscom.js");
+si.util.load('/siw/common/biz/', 'yeskey.js');
+si.util.load('/siw/common/biz/', 'signCloud.js');
+
+if(si.data.isLogin()){
+	//로그인한 경우 인증서 타입 확인을 위해 사용자 정보 체크
+	try {
+		var $userInfo = $svc.get('$userInfo');
+	} catch(e){
+		si.config(function($cfg){
+			$cfg.get('ajax').post('/siw/common/service-user-info/data.do',{},true).then(function(r){if(r.status==200&&r.data&&r.data.body)$cfg.get('$userInfo').set(r.data.body);});
+		});
+
+		//로그인 사용자 정보 서비스
+		si.provider('$userInfo',function(){
+			var _o={};
+			return {set:set,$this:$this};
+			function set(o){o&&(_o=o)}
+			function $this($svc){return _o}
+		});
+	}
+}
+
+
+//service
+si.service('$sign', function($svc) {
+    var log = $svc.logger('$sign');
+    var lpopup = $svc.get('lpopup');
+    var uiloading = $svc.get('uiLoading');
+    var location = $svc.get('location');
+    var CertManX;
+    var pwdFailCount = 0;
+    
+    if (getCookieForActiveX() === "true") {
+        CertManX = loadActiveObject();
+    } else {
+        CertManX = ytMain;
+    }
+
+    if(si.data.isLogin()){
+    	var $userInfo = $svc.get('$userInfo');
+    	
+    	if($userInfo.cert_type == 'F'){ //금융인증서로그인
+    		var yeskey = $svc.get('yeskey');
+    		
+    		return {
+    			CertManX : CertManX,
+    	    	isInstalled: yeskey.isInstalled,
+    	    	getPcIdentity: getPcIdentity,
+    	    	gmsCertSign: yeskey.sign,
+    	    	gmsCertNeSign: yeskey.passwordCompSign,
+    	    	gmsCertNeSignNopass: yeskey.compSign
+    	    };
+    	}else if($userInfo.cert_type == 'C'){//클라우드 공인인증서 로그인
+    		var signCloud = $svc.get('signCloud');
+    		
+    		return {
+    			CertManX : CertManX,
+    	    	isInstalled: signCloud.isInstalled,
+    	    	getPcIdentity: getPcIdentity,
+    	    	gmsCertSign: signCloud.gmsCertSign,
+    	    	gmsCertNeSign: signCloud.gmsCertNeSign,
+    	    	gmsCertNeSignNopass: signCloud.gmsCertNeSignNopass
+    	    };
+    	}
+    }
+    
+    return {
+    	CertManX : CertManX,
+    	isInstalled: isInstalled,		//설치체크
+    	getPcIdentity: getPcIdentity,	//단말정보
+    	gmsCertSign: gmsCertSign,		//전자서명
+    	gmsCertNeSign: gmsCertNeSign,	//축약서명
+    	gmsCertNeSignNopass: gmsCertNeSignNopass //축약서명(비밀번호 입력 없음, 이전에 확인된 인증서로 서명처리)
+    };
+	
+    //
+    //프로그램 설치여부 확인
+    function isInstalled(mannualSetupCallback) {
+    	//
+    	log("공동인증서 설치 여부 체크 start!!!");
+    	uiloading.on();
+    	//
+    	var deferred = $.Deferred();
+    	//
+    	if(CertManX.doubleClickBlock(arguments.callee)) {
+    		log("더블클릭 방지!!!");
+    		uiloading.off();
+			deferred.resolve(true);
+    	} else {
+    		//SetInfoPage : 모듈 설치가 안되어있을시 다운로드 안내페이지를 호출 할것인지, 에러코드로 반환받을지 설정하는 함수
+    		CertManX.SetInfoPage(1); //0 – 안내페이지 호출, 1 – 에러코드로 반환
+    		//CertServiceSetup : 모듈이 설치되어 있는지 확인하는 함수.
+    		CertManX.CertServiceSetup(function(result) {
+    			log("CertServiceSetup result = " + result);
+    			uiloading.off();
+    			//
+    			if (result == "") {
+    				//90000 : SKCertService 실행이 안되어있을시 발생
+    				//90001 : SKCertService 모듈 버전이 낮을 경우 발생
+    				//90002 : SKCertService DLL 버전이 낮을 경우 발생
+    				log("인증서 솔루션 설치 확인 결과오류 = [" + CertManX.GetLastErrorCode() + "] " + CertManX.GetLastErrorMsg());
+    				if(!mannualSetupCallback) {
+    					log("통합설치 페이지로 이동");
+    					lpopup.alert("공동인증 프로그램이 설치되지 않았습니다. 공동인증 프로그램을 설치해 주세요.").then(function() {
+    						//location.go('/siw/customer-center/security/731707/contents.do');
+    						location.go('/wizvera/veraport/install20/install_web.html', {
+    							P_name: 'SKCertService',
+    							url: encodeURIComponent(window.location.href)
+    						});
+    					});
+    				}
+    				deferred.reject("[" + CertManX.GetLastErrorCode() + "] " + CertManX.GetLastErrorMsg());
+    			} else {
+    				deferred.resolve(result);
+    			}
+    		});
+    	}
+    	//
+        return deferred.promise();
+    }
+    //
+    //단말정보 조회
+    function getPcIdentity() {
+    	var deferred = $.Deferred();
+    	//로딩중 이미지 표시
+    	uiloading.on();
+    	//
+    	isInstalled().then(function(installed) {
+		    // 단말정보획득(LPCTSTR pszIn, long mode)
+            CertManX.GetPCIdentity("", 6+32, function(ret) {
+            	uiloading.off();
+            	if(ret == "") {
+            		var ErrCode = CertManX.GetLastErrorCode();
+                    if(ErrCode == 2044) {
+                        lpopup.alert("단말정보획득 실패 : 세션인증이 되지 않았습니다.").then(function() {
+                        	deferred.reject();
+                        });
+                    } else {
+                    	lpopup.alert("단말정보획득 실패했습니다.<br/>[" + ErrCode + "] " + CertManX.GetLastErrorMsg()).then(function() {
+                    		deferred.reject();
+                    	});
+                    }
+            	} else {
+            		deferred.resolve({
+            			nid: CertManX.GetToken(ret, "nid"),  // 어댑터모델명
+            			mac: CertManX.GetToken(ret, "mac"),  // 네트워크 어댑터 물리적주소
+            			nkey: CertManX.GetToken(ret, "nkey"),  // 해쉬암호화 된 네트워크 어댑터 물리적주소
+            			hdsn: CertManX.GetToken(ret, "hdsn"),  // 하드디스크 시리얼번호
+            			hkey: CertManX.GetToken(ret, "hkey"),  // 해쉬안호화 된 하드디스크 시리얼번호
+            			hdid: CertManX.GetToken(ret, "hdid"),  // 하드디스크모델명
+            			cpuid: CertManX.GetToken(ret, "cpuid")  // CPUID 문자열
+            		});
+            	}
+            });
+    	}, function(error) {
+    		uiloading.off();
+    		//설치 확인 실패(미설치, 버전, etc)
+    		deferred.reject();
+    	});
+    	//
+        return deferred.promise();
+    }
+    //
+    //전자서명
+    function gmsCertSign(dn, pd, param) {
+    	var deferred = $.Deferred();
+    	
+    	try{
+    	var $userInfo = $svc.get('$userInfo');
+    	var appCert = $userInfo.appCert;
+    	
+    	if(appCert == 'qr'){
+    		lpopup.appconfirmqr("sign").then(function(ok) {
+	    		if(ok) {
+	    			if(ok){
+	    				if(param != null){
+	    					param.signed_data = 'appcert';
+	    				}
+	    				deferred.resolve({signed_data: 'appcert'});
+	    			}else{
+	    				deferred.reject();
+	    			}
+	    		}else{ 
+	    			
+	    			deferred.reject();
+	    		}
+	    	});
+    		return deferred.promise();
+    	}
+    	if(appCert == 'easy'){
+    		lpopup.appconfirm("sign").then(function(ok) {
+	    		if(ok) {
+	    			if(ok){
+	    				if(param != null){
+	    					param.signed_data = 'appcert';
+	    				}
+	    				deferred.resolve({signed_data: 'appcert'});
+	    			}else{
+	    				deferred.reject();
+	    			}
+	    		}else{ 
+	    			
+	    			deferred.reject();
+	    		}
+	    	});
+    		return deferred.promise();
+    	}
+    	}catch(e){
+    		
+    	}
+    	
+    	var plaintext = "testplain";
+    	if(!dn) {
+    		dn = "";
+    	}
+    	if(!pd) {
+    		pd = "";
+    	}
+    	if(param) {
+    		plaintext = JSON.stringify(param);
+    	}
+    	var certCallType = 256+0+1;		//비밀번호 입력란을 표시
+    	if(dn == '' && pd == '') {
+    		//인증서 선택창 표시
+    		certCallType = 256+0+1;		//비밀번호 입력란을 표시
+    	} else if(dn != '' && pd == '') {
+    		//비밀번호 입력창 표시
+    		certCallType = 16+0+1;		//비밀번호 입력란을 표시
+    	}
+    	//
+    	if(pwdFailCount > 4) {
+    		lpopup.alert("공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+    			deferred.reject();
+    		});
+            return deferred.promise();
+        }
+    	//
+    	isInstalled().then(function(installed) {
+    		log(">>> 인증서 솔루션 설치 확인 완료!!!!");
+    		CertManX.SetDeviceOrder("HRUS"); // 인증서 우선 검색 순위 (S:저장토큰(SmartCard), H:하드디스크, U:보안토큰, R:이동식디스크)
+            CertManX.SetPasswordEncMode(1 + 16); // 패스워드 ENC 모드
+
+            CertManX.SetDeviceViewOrder("RUSH"); //저장매체 이미지 표시순서(R:이동식디스크, U:보안토큰, S:저장토큰, H:하드디스크)
+            // CertManX.SetPolicyFilter(1+16, "");  //인증서 정책 필터(0:없음, 1:개인범용, 16:법인범용, 256:증권전용개인)
+
+            CertManX.SetWebAccMode(1);           //장애인 웹접근성
+
+            CertManX.SetScanByDialogChoiceMode(0); //저장매체 선택시 인증서 검색
+            CertManX.SetLanguageMode(0); //모듈 언어 설정
+            //TODO :: 안랩 AOS 키패드 보안 연동 임시 제외
+            CertManX.SetKeySaferMode(3);         // 키보드보안모듈 연동  3이면 안랩
+            //
+            CertManX.SetWrongPasswordLimit(7);   // 패스워드 입력제한(count : 비밀번호 오류 횟수)
+            CertManX.UnSetMatchedContext(function () {
+            	CertManX.SetPolicyFilter(1+16+256,"1.2.410.200004.5.1.1.10;1.2.410.200004.5.1.1.9.4;");
+                CertManX.SetMatchedContextExt(dn, "", pd, certCallType, function (dn) {
+                	log("dn = " + dn);
+                    if(dn == "") {
+                    	log("dn is null!!!!");
+                    	var lastErrCode = CertManX.GetLastErrorCode();
+                    	log("lastErrCode = " + lastErrCode);
+                        if(lastErrCode == 2417) {
+                        	pwdFailCount++;
+                        	lpopup.alert("공동인증서 비밀번호 오류 입니다. [" + pwdFailCount + "회]").then(function() {
+                        		deferred.reject();
+                        	});
+                        } else if(lastErrCode == 2501) {
+                        	log("취소 처리!!!");
+                        	deferred.reject();
+                        } else {
+                        	pwdFailCount = 0;
+                        	lpopup.alert("[" + CertManX.GetLastErrorCode() + "]" + CertManX.GetLastErrorMsg()).then(function() {
+                        		deferred.reject();
+                        	});
+                        }
+                    } else {
+                    	log("서명처리!!!");
+                    	pwdFailCount = 0;
+                    	//BSTR SignDataB64(BSTR pPassword, BSTR pPlainText, long mode)
+                    	//mode 0 : signdata 만 전달
+                    	//mode 1 : signdata, r 값 등을 모두 전달하므로 필요한 값을 GetToken으로 추출해야함...
+                    	CertManX.SignDataB64("", plaintext, 1, function (signdata) {
+                    		log("signdata : ", signdata);
+                    		if(signdata == "") {
+                    			lpopup.alert("[" + CertManX.GetLastErrorCode() + "]" + CertManX.GetLastErrorMsg()).then(function() {
+                            		deferred.reject();
+                            	});
+                    		} else {
+                    			deferred.resolve({
+                                    dn: CertManX.GetToken(signdata, "dn"),
+                                    r_value: CertManX.GetToken(signdata, "r"),
+                                    signed_data: CertManX.GetToken(signdata, "data"),
+                                    plain_text: plaintext
+                                });
+                    		}
+                    	});
+                    }
+                });
+            }); // 선택정보 초기화
+            //
+    	}, function(error) {
+    		//설치 확인 실패(미설치, 버전, etc)
+    		deferred.reject();
+    	});
+    	//
+        return deferred.promise();
+    }
+    
+    //축약서명
+    function gmsCertNeSign(param) {
+    	var deferred = $.Deferred();
+    	var dn = "";
+    	var certCallType = 16+0+1;		//비밀번호 입력란을 표시
+    	try {
+    		var $userInfo = $svc.get('$userInfo');
+    		var certUse = $userInfo.cert_use;
+    		
+    		var appCert = $userInfo.appCert;
+    		
+    		if(appCert == 'qr'){
+	    		lpopup.appconfirmqr("simplesign").then(function(ok) {
+					if(ok) {
+						if(ok){
+							param.signed_data = 'appcert';
+							deferred.resolve(param);
+						}else{
+							deferred.reject();
+						}
+					}else{ 
+						
+						deferred.reject();
+					}
+				});
+	    		return deferred.promise();
+    		}
+    		if(appCert == 'easy'){
+	    		lpopup.appconfirm("simplesign").then(function(ok) {
+					if(ok) {
+						if(ok){
+							param.signed_data = 'appcert';
+							deferred.resolve(param);
+						}else{
+							deferred.reject();
+						}
+					}else{ 
+						
+						deferred.reject();
+					}
+				});
+	    		return deferred.promise();
+    		}
+    		
+    		if('T' == certUse) {
+    			//조회전용 권한...
+    			lpopup.confirm("본 화면은 공동인증서가 필요한 화면입니다.<br/>공동인증서로 재로그인하시겠습니까?").then(function(ok) {
+    				if(ok) {
+    					page.login();
+    				} 
+    				deferred.reject();
+    			});
+    			return deferred.promise();
+    		} else if('N' == certUse) {
+    			//인증서 상태 비상 skip 처리
+    			param.signed_data = '';
+            	param.plain_text = '';
+            	//
+            	return deferred.resolve(param);
+    		}
+    		//인증서 사용일 경우, dn값을 확인
+    		//dn값이 정상일 경우, 인증서 비밀번호 입력창 표시, 
+    		//dn값이 비정상일 경우는 인증서 선택창으로 표시
+    		dn = $userInfo.dn;
+    		if(dn == null || dn == "null") {
+    			log("dn is null!!!");
+    			dn = "";
+    			certCallType = 256+0+1;	//인증서 선택창을 표시
+    		}
+    	} catch (err) {
+    		log("$userInfo err : ", err);
+    	}
+    	var plaintext = JSON.stringify(param);
+    	log("dn = " + dn);
+    	log("plaintext = " + plaintext);
+    	//
+    	if(pwdFailCount > 4) {
+    		lpopup.alert("공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+    			deferred.reject();
+    		});
+            return deferred.promise();
+        }
+    	//
+		//TODO :: 안랩 AOS 설정 임시 제외 처리
+		CertManX.SetKeySaferMode(3);
+		//
+		//UnSetMatchedContext : 선택된 인증서 정보를 모두 초기화 한다.
+		CertManX.UnSetMatchedContext(function () {
+    		//dn...설정...
+			//SetMatchedContextExt : 확장된 기능을 제공하는 인증서 선택함수.
+			//BSTR pszUserID : 인증서 DN 또는 DN의 userid
+			//BSTR pszSuffix : 검색할 인증서의 DN suffix(예: ou=test,O=test,c=KR )
+			//BSTR pszPassword : 인증서 비밀번호
+			//long Type : 인증서 선택/나열 방법을 정의(4bit(A) + 4bit(B) + 4bit(C) + 4bit(D) 의 WORD로 관리,현재 하위 12bit(BCD)를 사용, 최상위 4bit(A)는 reserved)
+			//            B = 0 signKorea 인증서만을 기본검색, = 1 전체 인증서 검색
+			//            C = 0 비밀번호를 입력 받음, = 1 비밀번호를 입력 받지 않음
+			//            D = 0 기능없음.   
+    		CertManX.SetMatchedContextExt(dn, "", "", certCallType, function(dn){
+    	        if(dn == "") {
+    	            if(CertManX.GetLastErrorCode() == 2417) {
+    	            	pwdFailCount++;
+    	            	lpopup.alert("공동인증서 비밀번호 오류 입니다.["+pwdFailCount+"회]").then(function() {
+    	            		deferred.reject();
+    	            	});
+    	            } else if(CertManX.GetLastErrorCode() == 2501) {
+    	            	log("사용자 취소 처리!!!");
+    	            	deferred.reject();
+    	            } else {
+    	            	pwdFailCount = 0;
+    	            	lpopup.alert("["+CertManX.GetLastErrorCode() +"]"+CertManX.GetLastErrorMsg()).then(function() {
+    	            		deferred.reject();
+    	            	});
+    	            }
+    	        } else {
+    	        	log("인증서 확인 완료!!!");
+    	        	pwdFailCount = 0;
+    	        	CertManX.SignData_ne_B64("", plaintext, 1, function(nesigndata) {
+    	        		log("nesigndata : ", nesigndata);
+    	        		if(nesigndata == "") {
+    	        			if(CertManX.GetLastErrorCode() == 2501) {
+    	        				log("사용자 취소 처리!!!");
+    	    	            	deferred.reject();
+    	        			} else {
+    	        				lpopup.alert("["+CertManX.GetLastErrorCode() +"]"+CertManX.GetLastErrorMsg()).then(function() {
+    	        					deferred.reject();
+    	        				});
+    	        			}
+                        } else {
+                        	var signed_data = CertManX.GetToken(nesigndata, "data");
+                        	//축약서명 데이터 보정
+                        	var convert = "";
+                            for (var i=0; i < 174; i++) {
+                                if (signed_data.charCodeAt(i) != 10) {
+                                    convert = convert + signed_data.charAt(i);
+                                }
+                            }
+                            //
+                        	param.dn = CertManX.GetToken(nesigndata, "dn");
+                        	param.signed_data = convert;
+                        	param.plain_text = plaintext;
+                        	//
+                        	deferred.resolve(param);
+                        }
+    	        	});
+    	        }
+    		});
+		});
+
+        return deferred.promise();
+    }
+    //
+    //축약전자서명 (password 입력없이 처리, 이전에 인증된 인증서 정보로 서명만 처리함...)
+    function gmsCertNeSignNopass(param) {
+    	var deferred = $.Deferred();
+    	var dn = "";
+    	var certCallType = 256+0+1;		//비밀번호 입력 없음
+    	try {
+    		var $userInfo = $svc.get('$userInfo');
+    		var certUse = $userInfo.cert_use;
+    		
+    		var appCert = $userInfo.appCert;
+    		
+    		if(appCert == 'qr'){
+	    		lpopup.appconfirmqr("simplesign").then(function(ok) {
+					if(ok) {
+						if(ok){
+							param.signed_data = 'appcert';
+							deferred.resolve(param);
+						}else{
+							deferred.reject();
+						}
+					}else{ 
+						
+						deferred.reject();
+					}
+				});
+	    		return deferred.promise();
+    		}
+    		if(appCert == 'easy'){
+	    		lpopup.appconfirm("simplesign").then(function(ok) {
+					if(ok) {
+						if(ok){
+							param.signed_data = 'appcert';
+							deferred.resolve(param);
+						}else{
+							deferred.reject();
+						}
+					}else{ 
+						
+						deferred.reject();
+					}
+				});
+	    		return deferred.promise();
+    		}
+    		if('T' == certUse) {
+    			//조회전용 권한...
+    			lpopup.confirm("본 화면은 공동인증서가 필요한 화면입니다.<br/>공동인증서로 재로그인하시겠습니까?").then(function(ok) {
+    				if(ok) {
+    					page.login();
+    				} 
+    				deferred.reject();
+    			});
+    			return deferred.promise();
+    		} else if('N' == certUse) {
+    			//인증서 상태 비상 skip 처리
+    			param.signed_data = '';
+            	param.plain_text = '';
+            	//
+            	return deferred.resolve(param);
+    		}
+    		//인증서 사용일 경우, dn값을 확인
+    		//dn값이 정상일 경우, 인증서 비밀번호 입력창 표시, 
+    		//dn값이 비정상일 경우는 인증서 선택창으로 표시
+    		dn = $userInfo.dn;
+    		if(dn == null || dn == "null") {
+    			log("dn is null!!!");
+    			dn = "";
+    			certCallType = 256+0+1;	//인증서 선택창을 표시
+    		}
+    	} catch (err) {
+    		log("$userInfo err : ", err);
+    	}
+    	var plaintext = JSON.stringify(param);
+    	log("dn = " + dn);
+    	log("plaintext = " + plaintext);
+    	log("certCallType = " + certCallType);
+    	//
+    	if(pwdFailCount > 4) {
+    		lpopup.alert("공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+    			deferred.reject();
+    		});
+            return deferred.promise();
+        }
+		//SetMatchedContextExt : 확장된 기능을 제공하는 인증서 선택함수.
+		//BSTR pszUserID : 인증서 DN 또는 DN의 userid
+		//BSTR pszSuffix : 검색할 인증서의 DN suffix(예: ou=test,O=test,c=KR )
+		//BSTR pszPassword : 인증서 비밀번호
+		//long Type : 인증서 선택/나열 방법을 정의(4bit(A) + 4bit(B) + 4bit(C) + 4bit(D) 의 WORD로 관리,현재 하위 12bit(BCD)를 사용, 최상위 4bit(A)는 reserved)
+		//            B = 0 signKorea 인증서만을 기본검색, = 1 전체 인증서 검색
+		//            C = 0 비밀번호를 입력 받음, = 1 비밀번호를 입력 받지 않음
+		//            D = 0 기능없음.   
+		CertManX.SetMatchedContextExt(dn, "", "", 256+0+1, function(dn){
+	        if(dn == "") {
+	            if(CertManX.GetLastErrorCode() == 2417) {
+	            	pwdFailCount++;
+	            	lpopup.alert("공동인증서 비밀번호 오류 입니다.["+pwdFailCount+"회]").then(function() {
+	            		deferred.reject();
+	            	});
+	            } else if(CertManX.GetLastErrorCode() == 2501) {
+	            	log("사용자 취소 처리!!!");
+	            	deferred.reject();
+	            } else {
+	            	pwdFailCount = 0;
+	            	lpopup.alert("["+CertManX.GetLastErrorCode() +"]"+CertManX.GetLastErrorMsg()).then(function() {
+	            		deferred.reject();
+	            	});
+	            }
+	        } else {
+	        	log("인증서 확인 완료!!!");
+	        	pwdFailCount = 0;
+	        	CertManX.SignData_ne_B64("", plaintext, 1, function(nesigndata) {
+	        		log("nesigndata : ", nesigndata);
+	        		if(nesigndata == "") {
+	        			if(CertManX.GetLastErrorCode() == 2501) {
+	        				log("사용자 취소 처리!!!");
+	    	            	deferred.reject();
+	        			} else {
+	        				lpopup.alert("["+CertManX.GetLastErrorCode() +"]"+CertManX.GetLastErrorMsg()).then(function() {
+	        					deferred.reject();
+	        				});
+	        			}
+                    } else {
+                    	var signed_data = CertManX.GetToken(nesigndata, "data");
+                    	//축약서명 데이터 보정
+                    	var convert = "";
+                        for (var i=0; i < 174; i++) {
+                            if (signed_data.charCodeAt(i) != 10) {
+                                convert = convert + signed_data.charAt(i);
+                            }
+                        }
+                        //
+                    	param.dn = CertManX.GetToken(nesigndata, "dn");
+                    	param.signed_data = convert;
+                    	param.plain_text = plaintext;
+                    	//
+                    	deferred.resolve(param);
+                    }
+	        	});
+	        }
+		});
+        return deferred.promise();
+    }
+    
+});
+
+})();

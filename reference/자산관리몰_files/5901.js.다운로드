@@ -1,0 +1,347 @@
+/**
+ * 자산관리몰> 채권/RP> 장외채권매매> 장외채권매수가능 목록화면(5901)
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.04 | 추풍령 | 최초생성 |
+ * | 2017.09.05 | 전재준 | 매수 -> 회사채로 변경
+ * | 2022.09.02 | 이유진 | 회사채/국공채 탭 -> 전체상품 탭으로 변경 |
+ */
+
+(function (){
+si.util.load('/siw/common/biz/',['/wealth-management/bond-rp.js','common/component-investorGradeViewRadio.js']);
+	
+si.main(function($vo, $svc){
+	var log = $svc.logger('5901');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	var location = $svc.get('location');
+	
+	log('자산관리몰> 채권/RP> 장외채권매매 회사채 목록화면(5901)');
+
+	var lc = {};	// 로컬변수    관리
+	$vo.vl = {};	// ko 변수   관리
+	$vo.on = {};	// ko 이벤트 관리
+	$vo.fn = {};	// 함수처리
+	
+	//+++++++++++++++++++++++++++++ 로컬변수 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	
+	// 상수 설정
+	lc.CNST = {};
+	lc.CNST.MORE_VIEW_COUNT = 15;
+	
+	lc.param = si.getParam();
+	//+++++++++++++++++++++++++++++ 로컬변수 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	
+	//+++++++++++++++++++++++++++++ ko변수 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	// html 상태값 그룹
+	$vo.vl.status = {};	
+	$vo.vl.status.isSearch	= ko.observable(false);		// 조회상태값
+	$vo.vl.status.viewLength = ko.observable(lc.CNST.MORE_VIEW_COUNT);
+	$vo.vl.time = ko.observable('');
+	$vo.vl.bondType = ko.observable('');	// 라디오 선택 값 (전체, 회사채, 국공채)
+	$vo.vl.keyword = ko.observable('');	// 검색 입력 값
+	
+	// html 메시지 그룹
+	$vo.vl.msg = {};
+	
+	// 데이터 param 그룹
+	$vo.vl.params = {};	
+	$vo.vl.params.checked = ko.observableArray([]);
+	
+	// 데이터 결과 그룹
+	$vo.vl.result = {};
+	$vo.vl.result.resultList = ko.observableArray([]);
+	
+	// 투자자성향 메시지
+	$vo.cigv = {  
+		ready: function(){
+			//로그인상태면 진행
+			if( lc.param.loginType=='Y' ) {  //계좌고객
+				//투자성향 조회
+				$vo.cigv.getData();
+			}
+		},
+		callBack: function(result){
+			$vo.fn.callbackSearch(result);	// 투자성향 팝업 콜백
+		},
+		setType: function(result){
+			$vo.fn.callbackSearch(result);	// 라디오버튼 클릭 이벤트
+		},
+		menu: 'RP',
+		goodsType: 'bond'	// 상품타입
+	};  
+	lc.custInvtGradCode = '';  //고객투자등급코드
+	//+++++++++++++++++++++++++++++ ko변수 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+
+	//+++++++++++++++++++++++++++++ ko변수 computed 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	// 더보기 상태값
+	$vo.vl.status.isMoreView	= ko.computed(function(){
+		if($vo.vl.status.isSearch()){
+			return _.size($vo.vl.result.resultList()) > $vo.vl.status.viewLength();
+		}
+		return false;
+	});
+	// 조회데이터 상태값
+	$vo.vl.status.isNodata	= ko.computed(function(){
+		if($vo.vl.status.isSearch()){
+			return !( _.size($vo.vl.result.resultList()) > 0);
+		}
+		return true;
+	});
+	//+++++++++++++++++++++++++++++ 이벤트처리 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	// 더보기 클릭
+	$vo.on.moreList = function(){
+		$vo.vl.status.viewLength( $vo.vl.status.viewLength() + lc.CNST.MORE_VIEW_COUNT );
+
+		// 데이터 td에 sort 클래스 추가
+		var trIdx   = $vo.vl.status.viewLength() - lc.CNST.MORE_VIEW_COUNT -1;
+		var sortIdx = $("table.tblH.prodList tbody td.sort:eq(0)").index();
+		$("table.tblH.prodList tbody tr:gt("+trIdx+")").each(function(idx, tr){
+			$(tr).children("td").eq(sortIdx).addClass("sort");
+		});
+	};
+	// 채권신용등급 팝업
+	$vo.on.openBondCreditRating = function(){
+		var param = {};
+    	var option = {height:700, width: 737};
+		wpopup.open('/siw/wealth-management/bond-rp/pop_bond_credit_rating/contents-popup.do', 'pop_bond_credit_rating', param, option);
+	};
+	// 채권유형 팝업
+	$vo.on.openBondType = function(){
+		var param = {};
+    	var option = {height:700, width: 737};
+		wpopup.open('/siw/wealth-management/bond-rp/pop_bond_type/contents-popup.do', 'pop_bond_type', param, option);
+	};
+	// 채권발행정보 팝업
+	$vo.on.openBondIssue = function(d,e){
+		var param = {};
+		param.bondCode = d['종목코드'];
+		param.bondType = d['공시채권분류코드'];
+		param.onlyISA = d['계좌공시구분코드'];
+		//param.buyTrdeReveRt = d[3];
+		param.parentLocation = location;
+		//param.bondType = $vo.vl.bondType();
+    	var option = {height:700, width: 1077};
+		wpopup.open('/siw/wealth-management/bond-rp/5901P02/view-popup.do', '5901P02', param, option);
+	};
+	// 비교하기 팝업
+	$vo.on.openGoodsComparison2 = function(d,e){
+		if($vo.vl.params.checked().length < 2){
+			lpopup.alert("비교할 상품을 선택해 주십시오.").then(function(){
+				setFocus(e);
+			});
+			return;
+		}
+		if($vo.vl.params.checked().length > 3){
+			lpopup.alert("비교는 3개까지 가능합니다.").then(function(){
+				setFocus(e);
+			});
+			return;
+		}
+		var prmBondCodes = [];
+		var prmBondTypes = [];
+		var prmOnlyISA = [];
+		var data = $vo.vl.params.checked();
+		for (var i = 0; i < data.length; i++) {
+			prmBondCodes.push(data[i].split('|')[0]);
+			prmBondTypes.push(data[i].split('|')[1]);
+			prmOnlyISA.push(data[i].split('|')[2]);
+		}
+		
+		var param = {};
+		param.bondCodes = prmBondCodes;
+		param.urlRink   = "3";
+		param.parentLocation = location;
+		param.bondType = prmBondTypes;
+		param.onlyISAs = prmOnlyISA;
+    	var option = {height:700, width: 987};
+		wpopup.open('/siw/wealth-management/bond-rp/5901P01/view-popup.do', '5901P01', param, option);
+	};
+	
+	// 매수이동
+	$vo.on.movebondBuy = function(bondCode, bondType, onlyISA, d,e){
+		var param = {};
+		
+		if ($vo.vl.time() >= "090000" && $vo.vl.time() <= "170000") {
+			param.bondCode = bondCode;
+			param.bondType = bondType;		// 라디오버튼으로 선택한 bondType이 아닌 선택한 정보의 bondType을 이용 
+			param.onlyISA = onlyISA;
+			param.ancBdClasCode = bondType; // 공시채권분류코드
+
+			location.go("/siw/wealth-management/bond-rp/590102/view.do", param);
+		} else {
+			lpopup.alert("<b>지금은 장외채권을 매매할 수 없어요.</b><br/><br />[매매 시간]<br />영업일 09:00 ~17:00");
+		}
+	};
+	
+	// 정렬
+	$vo.on.sorting = function(index, d, e){
+		var targetObj = $(e.target)[0].tagName.toUpperCase() == "A" ? $(e.target) : $(e.target).parent();
+		// 현재 자신의 상태를 체크
+		var thisIdx  = $(targetObj).parent().attr("data-sort-idx");
+		var isSelect = $(targetObj).parent().hasClass("select");
+		var isSortUp = $(targetObj).parent().hasClass("sortingUP") && isSelect;
+		var title	 = $(targetObj).parent().find("span").text()||"";
+		
+		// class 초기화
+		$("table.tblH.prodList thead th.select").removeClass("select");
+		$("table.tblH.prodList thead th.sortingUP").removeClass("sortingUP");
+		$("table.tblH.prodList thead th.sortingDOWN").removeClass("sortingDOWN");
+		$("table.tblH.prodList tbody td.sort").removeClass("sort");
+		// title 초기화
+		$("table.tblH.prodList thead th a").attr("title","");
+		
+		
+		//Tr 해당 칼럼명으로 index 값 등록
+		if(title === '종목명') {
+			index = "채권종목한글명";
+		} else if(title === '만기일') {
+			index = "만기일자";
+		} else if(title === '투자기간') {
+			index = "잔존일수";
+		} else if(title === '매수수익률(세전, 연)') {
+			index = "상품채권매매수익율";
+		} else if(title === '법인') {
+			index = "상품채권법인세전수익율";
+		} else if(title === '일반') {
+			index = "상품채권세전수익율";
+		} else if(title === '신용등급') {
+			index = "적용민평사신용등급코드";
+		} 
+		
+		// 역순 sort
+		if(!isSortUp){
+			$vo.vl.result.resultList(
+					_.sortBy($vo.vl.result.resultList(), function(obj){
+						var convertValue = parseFloat(obj[index].replace(/,/gi,''));
+						if( _.isNaN(convertValue) ){
+							return obj[index];
+						}else{
+							return convertValue;
+						}
+					})
+				);
+			$(targetObj).parent().addClass("select");
+			$(targetObj).parent().addClass("sortingUP");
+			$(targetObj).attr("title",title + " 내림차순으로 정렬");
+		}else{
+			$vo.vl.result.resultList(
+					_.sortBy($vo.vl.result.resultList(), function(obj){
+						var convertValue = parseFloat(obj[index].replace(/,/gi,''));
+						if( _.isNaN(convertValue) ){
+							return obj[index];
+						}else{
+							return convertValue;
+						}
+					}).reverse()
+				);
+			$(targetObj).parent().addClass("select");
+			$(targetObj).parent().addClass("sortingDOWN");
+			$(targetObj).attr("title",title + " 오름차순으로 정렬");
+		}
+		
+		// 데이터 td에 클래스 추가
+		$("table.tblH.prodList tbody tr").each(function(idx, tr){
+			$(tr).children("td").eq(thisIdx).addClass("sort");
+		});
+	};
+	
+	$vo.on.clkChecked = function(d,e){
+		if($vo.vl.params.checked().length > 3){
+			$vo.vl.params.checked().pop();
+			lpopup.alert("상품을 3개 이상 고를 수 없습니다.").then(function(){
+				setFocus(e);
+			});
+			return false;
+		}
+		return true;
+	};
+	
+	// 채권종류 라디오 버튼 클릭
+	$vo.on.clkBondType = function(d,e){
+		$vo.vl.bondType($(e.target).val());
+		$vo.fn.getBondList();
+		return true;
+	}
+	
+	//+++++++++++++++++++++++++++++ 이벤트처리 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	
+	//+++++++++++++++++++++++++++++ 함수처리 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	// 장외채권 구매가능 목록 조회
+	$vo.fn.getBondList = function(){
+		var params = {
+				keyword: $vo.vl.keyword(),
+				bondType : $vo.vl.bondType(),
+				custGrd: lc.custInvtGradCode
+		};
+		
+		return http.post('/siw/wealth-management/bond-rp/5901/data.do', params).then(function(rs) {
+			// class 초기화
+			$("table.tblH.prodList thead th.select").removeClass("select");
+			$("table.tblH.prodList thead th.sortingUP").removeClass("sortingUP");
+			$("table.tblH.prodList thead th.sortingDOWN").removeClass("sortingDOWN");
+			$("table.tblH.prodList tbody td.sort").removeClass("sort");
+			
+			if(rs) {
+				if(rs['errCode'] != 'Z0001'){
+					//lpopup.alert(rs['errMsg']);
+					$vo.vl.result.resultList([]);
+				}else{
+					$vo.vl.time(rs['time']);
+					$vo.vl.status.isSearch(true);
+					rs["list"] = _.filter(rs["list"],function(d,k){
+						d["상품채권매매수익율"]		= parseFloat(d["상품채권매매수익율"]+"").toFixed(3);
+						d["상품채권법인세전수익율"]	= parseFloat(d["상품채권법인세전수익율"]+"").toFixed(3);
+						d["상품채권세전수익율"]		= parseFloat(d["상품채권세전수익율"]+"").toFixed(3);
+						return true;
+					});
+					$vo.vl.result.resultList(rs["list"]);
+					return true;
+				}
+			}
+		});
+	};
+	// 전송 파라메터 만들기
+	$vo.fn.makeParam = function(target){
+		var params = {};
+		for (var prop in target) { 
+			if (target.hasOwnProperty(prop)) { 
+				if(_.isFunction(target[prop])) params[prop] = target[prop](); 
+				else params[prop] = target[prop]; 
+			} 
+		}
+		return params;
+	};
+	
+	//투자자성향 메시지 콜백
+	$vo.fn.callbackSearch = function(result){  //
+		if( result.searchType=='1' ){  //성향에 맞는 펀드 확인하기(layerInvestCradeViewSearch)
+			lc.custInvtGradCode = result.custGrd;
+			$vo.fn.getBondList();
+			
+		}else if( result.searchType=='2' ){  //모든 펀드 검색하기(layerInvestCradeViewSearch)
+			lc.custInvtGradCode = '';
+			$vo.fn.getBondList();
+			
+		}else if( result.searchType=='3' ){  //투자성향 등록하기(layerInvestCradeViewSearch)
+			location.go('/siw/banking-lending/customer-info/597301/view.do');
+		}
+		
+	};
+	//+++++++++++++++++++++++++++++ 함수처리 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+
+	init();
+	function init(){
+		$vo.fn.getBondList();
+	}
+	function setFocus(e){
+		setTimeout(function(){
+			$(e && $((typeof e === 'string' ? e : e.target))).focus();
+		},100);
+	}
+});
+
+})();

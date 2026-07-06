@@ -1,0 +1,146 @@
+/**
+ * 펀드 - 공통
+ * 투자상담문의 팝업(L)
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.17 | 이민영 | 최초생성 |
+ */
+(function (){
+
+si.controller('commL01', function($vo, $svc) {
+	var log = $svc.logger('commL01');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var location = $svc.get('location');
+	var ajax = $svc.get('ajax');
+	var bbs = $svc.get('bbs');
+
+	var lc = {};	// 로컬변수
+	$vo.vl = {};	// ko 변수	관리
+	$vo.on = {};	// ko 이벤트 관리
+	$vo.fn = {};
+
+	$vo.vl.consultList = ko.observableArray([]);
+	$vo.vl.smartMgrNm = ko.observable('');	//스마트센터 관리자명
+	$vo.vl.smartMgrTel = ko.observable('');	//스마트센터 직원평문전화번호
+	$vo.vl.smartCheck = ko.observable('');
+	$vo.vl.listStatus = ko.observable('');
+	$vo.vl.noticelist = ko.observableArray([]); //공지사항 LIST
+	
+	// 변수 바인딩
+	// ==================================================
+	lc.prm	= lpopup.getParam($vo)||{};		//	넘어온 파라메터
+	log('getParam', lc.prm);
+	
+	// 변수 바인딩
+	// ==================================================
+
+	// 이벤트 바인딩
+	// ==================================================
+	$vo.on.close = function() {
+		lpopup.close($vo, false);
+	};
+	
+	$vo.on.ok = function() {
+		lpopup.close($vo, true);
+	};
+	
+	//고객센터 > 상담/문의 > 금융상품 상담 예약
+	$vo.on.reqConsult = function(vo, ev){
+		if($(':radio[name="consult-radio"]:checked').val() == '' || _.isUndefined($(':radio[name="consult-radio"]:checked').val())){
+			lpopup.alert('컨설턴트(관리지점)을 선택해 주세요.', ev);
+			return;
+		}
+		
+		//wpopup
+		var options = {
+				width: '720',
+				height: '870'
+		};
+		
+		var checkValue = $(':radio[name="consult-radio"]:checked').val().split(':');
+		
+		var param = {
+			//컨설턴트 관리지점정보.
+			val : checkValue[0],
+			nm : checkValue[1],
+			status : $vo.vl.listStatus()
+		};
+		
+		wpopup.open('/siw/wealth-management/fund/popup/pop_product_counsel/view-popup.do', 'pop_product_counsel', param, options);
+	};
+	
+	$vo.on.smartCenterInfo = function(){
+		
+		//정보조회
+		http.post('/siw/wealth-management/fund/commL0103/data.do', {}, false).then(function(rs) {
+			log(rs);
+			if(rs){
+		        var manger_name = rs["관리자명"];
+		        var manger_telephone = rs["직원평문전화번호"];
+		        if(manger_telephone != null && manger_telephone.length == 10){
+		            manger_telephone = manger_telephone.substring(0,2) + ")" + manger_telephone.substring(2,6) +"-" +  manger_telephone.substring(6);
+		        }
+		        $vo.vl.smartMgrNm(manger_name); //스마트센터 관리자명
+		        $vo.vl.smartMgrTel(manger_telephone);//스마트센터 직원평문전화번호
+			}
+		});
+	};
+	
+//	$vo.fn.getNotice = function(){
+//		//var testStr = { "BBS_Title" : "스마트자산관리센터 공지이벤트", "pageInfo" : { "startPage" : 1, "pages" : [ "02pDF~" ], "curPage" : 1, "startId" : "02pDF~" }, "title" : { "fn" : "번호", "f0" : "등록일", "f1" : "제목", "f2" : "조회수" }, "list" : [ { "fn" : "673521", "f0" : "2015.05.29", "f1" : "스마트자산관리센터가 차원이 다른 자산관리 서비스로 고객님을 모십니다", "f2" : "11" }, { "fn" : "673520", "f0" : "2015.05.29", "f1" : "하영주 PB입니다 고생합니다.", "f2" : "9" }, { "fn" : "673500", "f0" : "2015.05.18", "f1" : "스마트자산관리센터 공지이벤트1", "f2" : "14" } ] };
+//		//$vo.vl.noticelist(testStr.list);
+//		bbs.get('/bbs/list/smartAssetNotice.do',{}).then(function(body){
+//			log(JSON.stringify(body));
+//			$vo.vl.noticelist(body.list);
+//		});
+//	};
+	
+	//고객센터 > 상담/문의 > 금융상품상담 페이지 이동
+	$vo.on.resvTel = function(){
+		location.go("/siw/customer-center/advise/newvocWrite/view.do");
+	};
+	
+	init();
+	
+	// 로컬 함수
+	// ==================================================
+	function init() {
+		
+		if(si.data.isLogin()){
+			
+//			http.post('/siw/wealth-management/fund/commL0102/data.do', {}, false).then(function(rs){
+//				log(rs);
+//			});
+		
+			var param = {};
+			log(">>>>>>>>>>>>> req param :: ", {});
+			http.post('/siw/wealth-management/fund/commL0101/data.do', {}).then(function(rs){
+				log(rs);
+				if(rs){
+					if(rs['list1'] && rs['list1'].length > 0){
+						$vo.vl.consultList(rs['list1']);
+						$vo.vl.listStatus('list1');
+					}else if(rs['list2'] && rs['list2'].length > 0){
+						$vo.vl.consultList(rs['list2']);
+						$vo.vl.listStatus('list2');
+					}
+					$vo.vl.smartCheck(rs['여부']);
+					//스마트센터 관리 고객인경우에만 조회
+					if($vo.vl.smartCheck() == 'Y'){
+						$vo.on.smartCenterInfo();
+						//공지사항조회
+						//$vo.fn.getNotice();
+					}
+					
+				}
+			});
+		}
+		
+	}
+});
+
+})();

@@ -1,0 +1,335 @@
+/**
+ * 연금펀드 검색 > 수익률높은 펀드 탭
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.20 | 정명현 | 최초생성 |
+ */
+(function (){
+	
+	si.util.load('/siw/common/biz', ['/pension/saving.js']);
+	  si.util.load('/siw/common/biz', [
+		                           	    '/wealth-management/fund.js'
+		                           	  ]);
+	si.main(function($vo,$svc){
+		var http = $svc.get('http');
+		var ajax = $svc.get('ajax');
+	    var log = $svc.logger('49100302');
+	    var router = $svc.get('router');
+	    var lpopup = $svc.get('lpopup');
+	    var util = $svc.get('util');
+		var saving = $svc.get('saving');
+		var fund = $svc.get('fund');
+		var wpopup = $svc.get('wpopup');
+		var location = $svc.get('location');
+		var uiLoading = $svc.get('uiLoading');
+
+	    var lc = {};    // 로컬변수
+	    $vo.vl = {};    // 바인드 변수
+	    $vo.on = {};    // 바인드 이벤트
+	    $vo.fn = {};	// 로컬 이벤트
+	    lc.addProductListFlag = false; //더보기선택 여부체크
+	    $vo.vl.productBestList = ko.observableArray([]); //Best상품종목LIST
+		$vo.vl.productList = ko.observableArray([]); //상품종목 TOP 20 LIST
+		$vo.vl.sortInitFlag = ko.observable(false); //정렬이벤트 구분 Flag
+		$vo.vl.termType = ko.observable('2');//기간선택 1 : 1개월, 2 : 3개월, 3 : 6개월, 4 : 1년
+		$vo.vl.subTermType = ko.observable('2');//기간선택 1 : 1개월, 2 : 3개월, 3 : 6개월, 4 : 1년
+		$vo.vl.sortType = ko.observable('1');//정렬구분 //DESC, ASC
+		$vo.vl.checkFundYn1 = ko.observable('N');//대표펀드여부
+		$vo.vl.checkFundYn2 = ko.observable('Y');//판매중지제외여부
+		
+		$vo.vl.addClassObj = ko.observableArray([]);
+		
+		lc.addListArray = new Array();
+		
+		$vo.vl.viewType = ko.observable();			 //자세히보기, 카드뷰로보기
+		$vo.vl.viewType('list');	//상품LIST 보기 Default 카드뷰로 보기 (TO-DO 쿠키에 저장된 값)
+		
+		$vo.vl.interestList = ko.observableArray([]); //관심펀드LIST
+		
+		$vo.vl.busDay = ko.observable(); //영업일
+		
+		$vo.vl.currTabType = ko.observable('tab1');
+	    // 로컬
+	    // ==================================================
+	    lc = router.getParam('01')||'';
+	    log(lc);
+	    // 로컬 이벤트
+	    
+	    // 변수
+	    // ==================================================
+	    // 이벤트 함수 관리
+	    // ==================================================
+	  //TOP3조회 + 기간별 수익률상위 20개
+		$vo.on.addProductList = function(){
+			 lc.addProductListFlag = true;
+			 $vo.vl.pageNumber($vo.vl.pageNumber()+1);
+			 //재조회
+			 $vo.on.searchAll();
+		};
+		$vo.on.searchAll = function(){
+			//로딩바 제어종료시점 -> TOP20 조회 -> 영업일 조회 완료 후 종료
+			uiLoading.on();
+			$vo.vl.productBestList([]);
+			$vo.vl.productList([]);
+			var prm = {
+                serviceType : 'searchAll',
+                checkFundYn1 : $vo.vl.checkFundYn1(),
+                checkFundYn2 : $vo.vl.checkFundYn2(),
+                subTermType : $vo.vl.subTermType(),
+                sortType : $vo.vl.sortType(),
+			};
+			http.post('/siw/pension/saving-holder/49100302/data.do', prm, false).then(function(rs) {
+				log(rs);
+				if(rs){
+					if(rs['errorCode'] != 'Z0001'){
+						uiLoading.off();
+						lpopup.alert(rs['errorMsg']);
+					}else{
+						if(rs['list01']){
+							$vo.vl.productBestList(_.sortBy(rs['list01'], 0));
+						}
+						$vo.on.searchTop20();
+					}
+				}
+			});// end http.post
+		};//end function
+		
+		//기간별 수익률상위 20개 조회
+		$vo.on.searchTop20 = function(){
+			
+			//클래스더보기 영역초기화
+			lc.addListArray = new Array();
+			$vo.vl.addClassObj([]);
+			
+			var prm = {
+                    serviceType : "searchTop20",
+                    checkFundYn1 : $vo.vl.checkFundYn1(),
+                    checkFundYn2 : $vo.vl.checkFundYn2(),
+                    subTermType : $vo.vl.subTermType(),
+                    sortType : $vo.vl.sortType(),
+			};
+			log(prm.input);
+			http.post('/siw/pension/saving-holder/49100302/data.do', prm).then(function(rs) {
+				log(rs);
+				if(rs){
+					
+					$vo.fn.getBusDay();//영업일조회
+					
+					if(rs['errorCode'] != 'Z0001'){
+						uiLoading.off();
+						lpopup.alert(rs['errorMsg']);
+						$vo.vl.productList([]);
+						$vo.vl.productBestList([]);
+					}else{
+						if(rs['list01']){
+							$vo.vl.productList(rs['list01']);
+							$vo.vl.productBestList(rs['list01']);
+						}
+					}
+				}
+			});
+		};
+		
+		
+		//수익률 영역 1개월, 3개월, 6개월, 1년, 선취수수료, 보수, 설정액 데이터정렬 이벤트
+		$vo.on.sortData = function(type){
+			//자세히보기이면 수익률선택구분에 따라 LIST 선택여부 설정
+			if($vo.vl.subTermType() != type){
+				$('.sorting').removeClass('on'); //전체  sorting on 해제
+				$vo.vl.sortType('1');//정렬구분 //DESC, ASC				
+			}else{
+				if($vo.vl.currTabType() == 'tab1'){
+					//클릭한 영역의 on off 상태확인
+					var isOn = $('#td-1-'+type).children().hasClass('on');
+					//css on 추가
+					if(isOn){
+						$('#td-1-'+type).children().removeClass('on');
+						$vo.vl.sortType('1');//정렬구분 //DESC, ASC
+					}else{
+						$('#td-1-'+type).children().addClass('on');
+						$vo.vl.sortType('2');//정렬구분 //DESC, ASC
+					}
+				}else if($vo.vl.currTabType() == 'tab2'){
+					//클릭한 영역의 on off 상태확인
+					var isOn = $('#tab2-subsort'+type).hasClass('on');
+					//css on 추가
+					if(isOn){
+						$('#tab2-subsort'+type).removeClass('on');
+						$vo.vl.sortType('1');//정렬구분 //DESC, ASC
+					}else{
+						$('#tab2-subsort'+type).addClass('on');
+						$vo.vl.sortType('2');//정렬구분 //DESC, ASC
+					}
+				}
+			}
+			//데이터조회
+			$vo.vl.subTermType(type);//기간선택 1 : 1개월, 2 : 3개월, 3 : 6개월, 4 : 1년, 5: 선취수수료, 6: 보수, 8 설정액
+			$vo.on.searchTop20();
+		};
+		
+		//기간 버튼선택 제어 이벤트
+		$vo.on.changeTermType = function(type){
+			
+			$vo.vl.termType(type);
+			$vo.vl.subTermType(type);
+			
+			//Top3 - 20개 펀드상품 재조회
+			$vo.on.searchAll();
+		};
+		
+		//대표펀드,판매중지제외 클릭이벤트
+		$vo.on.checkViewCtrl = function(){
+			
+			if($("input:checkbox[id='checkView']").is(":checked")) $vo.vl.checkFundYn1('Y');//대표펀드여부
+			else $vo.vl.checkFundYn1('N');//대표펀드여부
+			
+			if($("input:checkbox[id='checkEtc']").is(":checked")) $vo.vl.checkFundYn2('Y');//판매중지제외
+			else $vo.vl.checkFundYn2('N');//판매중지제외
+			
+			//상위 20개 펀드상품 재조회
+			$vo.on.searchTop20();
+			
+			return true;
+		};
+		
+		
+		
+		//일괄매수
+		$vo.on.buyAll = function(){
+			$('input[name="checkbox-list"]:checked').each(function(){
+				log($(this).val());
+			});
+			fund.moveBuyAll(0);
+		};
+		
+		
+		// 자세히보기, 카드뷰보기 이벤트
+		$vo.on.changeViewType = function(type){
+			//체크항목초기화
+			$('input[name="checkbox-list"]').prop("checked", false);
+
+			log(type);
+			//View Type 결정
+			if('list' === type){
+				$vo.vl.viewType('list');
+			}else{
+				$vo.vl.viewType('cardView');
+			}
+		};
+		
+		// 수익률/수수료 탭 이벤트
+		$vo.on.changeTab = function(tabType){
+			$vo.vl.currTabType(tabType);
+			$vo.on.searchAll();
+		};
+		
+		
+		
+		
+		//관심펀드 관리 Start
+		// ==================================================
+		//관심펀드조회
+		$vo.on.getInterestFundList = function(){
+			//관심펀드 조회
+			var param = {};
+			log(">>>>>>>>>>>>> req param :: ", param);
+			http.post('/siw/wealth-management/fund/fund-comm01/data.do', param, false).then(function(rs){
+				log(rs);
+				if(rs){
+					if(rs['loginYn'] == 'Y' && rs['반복데이타0']){
+						$vo.vl.interestList(rs['반복데이타0']);
+					}
+				}
+			});
+		};
+		
+		// 관심펀드여부 판단
+		$vo.on.isInterestFund = function(code){
+			//펀드코드(7)로 비교.
+			return !_.isEmpty(_.filter($vo.vl.interestList(), function(v){ 
+				return v[1] == code; 
+			}));
+		};
+		
+		//관심펀드 등록/삭제
+		$vo.on.updateInterestFund = function(code) {
+			
+			//로그인상태면 진행
+			if(si.data.isLogin()){
+				
+				var type = '';
+				
+				//false면 등록요청, true면 삭제요청
+				if($vo.on.isInterestFund(code)){
+					type = '2'; //삭제
+				}else{
+					type = '1'; //등록
+				}
+				
+				var param = {
+					fund_code : code,
+					type : type
+				};
+				
+				log(">>>>>>>>>>>>> req param :: ", param);
+				http.post('/siw/wealth-management/fund/fund-comm03/data.do', param, false).then(function(rs){
+					log(rs);
+					if(rs){
+						if(rs["errorCode"] == "Z0005"  ){
+							$vo.on.getInterestFundList();
+						}else if(rs["errorCode"] == "Z0014"){
+							lpopup.alert("이미 관심펀드에 담긴 펀드입니다.");
+						}else{
+							lpopup.alert(rs["errorMsg"]);
+						}
+					}
+				});
+				
+			}else{
+				lpopup.alert('로그인 해 주세요.');
+			}
+			return false;
+		};
+		// ==================================================
+		//관심펀드 관리 End
+		
+		// 기타 함수관리
+		// ==================================================
+		//자세히보기 > 클래스더보기 LIST가져오기 
+		$vo.fn.getList = function(i){
+			var obj = _.filter($vo.vl.addClassObj(), function(v, idx){
+				return v.idx == i;
+			});
+			if(_.isEmpty(obj)) return [];
+			log('★★★★★★★★★★★★★★');
+			return obj[0].array;
+		};
+		
+		
+		// ==================================================
+		//영업일조회
+		// ==================================================
+		$vo.fn.getBusDay = function(){	
+			var prm = {	};		
+			http.post('/siw/wealth-management/fund/fundBusDay/data.do', prm).then(function(rs) {
+				log(rs);
+				if(rs){
+					uiLoading.off();
+					$vo.vl.busDay(rs['businessDay']);
+				}
+			});
+		}
+		
+		
+		
+		// ==================================================
+		init();
+		
+		function init() {
+			$vo.on.searchAll();
+			$vo.on.getInterestFundList();
+		};	
+		//end Tag
+	});
+})();

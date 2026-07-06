@@ -1,0 +1,146 @@
+@charset "utf-8";
+/* 메인(index) 전용 — 서브페이지와 동일한 980px 레이아웃 */
+
+.mainWrap .contents {
+    width: 980px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+}
+
+.main-home .main-hero {
+    padding: 40px 0 50px;
+    background: linear-gradient(180deg, #ebf3fc 0%, #fff 100%);
+    border-bottom: 1px solid #e2e2e4;
+}
+
+.main-home .main-cards {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.main-home .main-card {
+    flex: 1;
+    display: block;
+    min-height: 180px;
+    padding: 28px 32px;
+    background: #fff;
+    border: 1px solid #c8d8ea;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+}
+
+.main-home .main-card:hover {
+    border-color: #1598dc;
+    box-shadow: 0 4px 12px rgba(21, 152, 220, 0.15);
+}
+
+.main-home .main-card .sub {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.main-home .main-card .tit {
+    font-size: 22px;
+    color: #152475;
+    line-height: 1.4;
+}
+
+.main-home .main-card .tit em {
+    color: #1598dc;
+    font-style: normal;
+}
+
+.main-home .main-card--primary {
+    background: linear-gradient(135deg, #152475 0%, #1598dc 100%);
+    border-color: #152475;
+    color: #fff;
+}
+
+.main-home .main-card--primary:hover {
+    border-color: #1598dc;
+}
+
+.main-home .main-card--primary .sub {
+    color: #a8d4f5;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.main-home .main-card--primary .tit {
+    color: #fff;
+    font-size: 20px;
+}
+
+.main-home .main-banners {
+    padding: 50px 0 20px;
+    text-align: center;
+}
+
+.main-home .main-banners .assetTit {
+    margin-bottom: 30px;
+    font-size: 26px;
+    color: #333;
+}
+
+.main-home .main-banners .assetTit strong {
+    color: #152475;
+}
+
+.main-home .btmBanner {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+}
+
+.main-home .btmBanner li {
+    flex: 1;
+}
+
+.main-home .btmBanner a {
+    display: block;
+    min-height: 88px;
+    padding: 20px 20px 20px 56px;
+    background: #f7f9fc;
+    border: 1px solid #dde3ea;
+    border-radius: 6px;
+    text-align: left;
+    text-decoration: none;
+    color: #666;
+    font-size: 13px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.main-home .btmBanner a:before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 16px;
+    width: 28px;
+    height: 28px;
+    background: #1598dc;
+    border-radius: 50%;
+}
+
+.main-home .btmBanner a:hover {
+    border-color: #1598dc;
+    background: #fff;
+}
+
+.main-home .btmBanner a strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 16px;
+    color: #152475;
+}

@@ -1,0 +1,281 @@
+/**
+ * 나의자산현황 > 전계좌현황
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.06.29 | 정원영 | 최초생성 |
+ */
+(function (){
+si.util.load('siw/common/biz/myasset/status/','myAssetStatusCommon.js');
+si.util.load('siw/common/biz/myasset/details/','acctGoodsUtil.js');
+if(si.browser[1]>8&&si.browser[2]>8){
+	si.util.load('siw/common/js/','d3.min.js');
+}
+si.util.load('siw/common/js/','arcChart.js');
+si.main(function($vo, $svc){
+	
+	var log = $svc.logger('550504');
+	var util = $svc.get('util');
+	var http = $svc.get('http');
+	var loading = $svc.get('uiLoading');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	var location = $svc.get('location');
+	var myAssetStatusCommon = $svc.get('myAssetStatusCommon');
+	var acctGoodsUtil = $svc.get('acctGoodsUtil');
+	
+	//===========================================================
+	var lc = {};	// local 변수	관리
+	lc.accountList = null;
+
+
+	//본인계좌 콤보 리스트 (화면이동시 acctIndex 셋팅을위해 필요)
+	lc.cmbAcctList = $svc.get('$userInfo').acctList;
+	
+	lc.defaultShowCnt = 3;	//최초에 보여줘야할 계좌갯수
+	
+	lc.init = function(){
+		//총자산 조회
+		myAssetStatusCommon.getTotalAsset().then(function(data){
+			if(data.ErrType!='0'){
+				lpopup.alert(data.errorMsg).then(function(){
+					location.go('/siw/myasset/status/570101/view.do');
+				});
+				return;
+			}
+			
+			$vo.vl.totalAsset(data['총자산']);
+			$vo.vl.currentData(util.formatDate(new Date, 'yyyy.MM.dd'));
+			
+			myAssetStatusCommon.getAccountList().then(function(data){
+				if(data.ErrType!='0'){
+					lpopup.alert(data.errorMsg).then(function(){
+						location.go('/siw/myasset/status/570101/view.do');
+					});
+					return;
+				}
+				var resultList = [];
+				var index = 0;
+				
+				_.each(data['반복데이타0'], function(data, idx, dataList){
+					index = idx;
+					
+					var temp = {};
+					temp['계좌번호'] 	= data[0];
+					temp['계좌필명'] 	= data[2];
+					temp['출금가능금액'] = util.strToInt(data[20]); 
+					temp['총자산'] 	= util.strToInt(data[21]); 
+					
+					temp['금융상품'] 		= util.strToInt(data[12]); 
+					temp['주식'] 			= util.strToInt(data[13]); 
+					temp['선물옵션'] 		= util.strToInt(data[14]); 
+					temp['해외주식'] 		= util.strToInt(data[15]); 
+					temp['신용대출'] 		= util.strToInt(data[16])*-1;	//신용대출은 음수로 변환 
+					temp['해외선물_FX마진'] 	= util.strToInt(data[17]); 
+					temp['예수금'] 		= util.strToInt(data[18]); 
+					temp['기타'] 			= util.strToInt(data[19]); 
+					temp['현물상품'] 			= util.strToInt(data[23]); 
+					
+					temp['금융상품비율'] 		= util.strToFloat(data[4]); 
+					temp['주식비율'] 			= util.strToFloat(data[5]); 
+					temp['선물옵션비율'] 		= util.strToFloat(data[6]); 
+					temp['해외주식비율'] 		= util.strToFloat(data[7]); 
+					temp['신용대출비율'] 		= util.strToFloat(data[8])*-1;  //신용대출은 음수로 변환 
+					temp['해외선물_FX마진비율']	= util.strToFloat(data[9]); 
+					temp['예수금비율'] 			= util.strToFloat(data[10]); 
+					temp['기타비율'] 			= util.strToFloat(data[11]); 
+					temp['현물상품비율'] 			= util.strToFloat(data[24]);
+					
+					temp.acctNo = data[0];
+					temp.nick = data[2];
+					var iconInfo = acctGoodsUtil.getAcctIconClass(data[3], data[22]);
+					temp.name = iconInfo.name;			//계좌 명 
+					temp.className = iconInfo.className;			//계좌 명 클래스
+					
+				    temp.name2= "";
+				    temp.className2 = "";
+					var temp2 = acctGoodsUtil.getAcctIconClass(data[25], "N"); //제휴 계좌 icon
+					if(temp2.name=="파운트"||temp2.name=="디렉셔널"){
+					    temp.name2= temp2.name;
+					    temp.className2 = temp2.className;
+					    $vo.vl.temp2Exist(true);
+					}
+					
+					if(idx<lc.defaultShowCnt){
+						temp.show = ko.observable(true);
+					}else{
+						temp.show = ko.observable(false);
+					}
+					
+					resultList.push(temp);
+					
+				});
+				
+				lc.accountList = JSON.parse(JSON.stringify(resultList));
+				
+				if(index>lc.defaultShowCnt-1){
+					$vo.vl.hasMoreList(true);
+				}
+				
+				$vo.vl.acctList(resultList);
+				$vo.vl.sort(true)// 잔고순으로 처리
+			});
+		});	
+	}
+	
+	
+	//차트 데이터 그리기
+	lc.drawChart = function(idx){
+		if(idx){
+			var obj = $vo.vl.acctList()[idx];
+			if($("#chart"+idx).length>0){
+				setTimeout(function(){
+					$("#chart"+idx).shArcChart({
+						'animate' : true,
+						'data' :[
+						         { text:"금융상품", value:obj['금융상품비율']},
+						         { text:"주식", value:obj['주식비율']},
+						         { text:"선물옵션", value:obj['선물옵션비율']},
+						         { text:"KRX금시장", value:obj['현물상품비율']},
+						         { text:"해외주식", value:obj['해외주식비율']},
+						         { text:"해외선물/FX마진", value:obj['해외선물_FX마진비율']},
+						         { text:"신용대출", value:obj['신용대출비율']},
+						         { text:"예수금", value:obj['예수금비율']},
+						         { text:"기타", value:obj['기타비율']}
+						         ]
+					});
+				}, 300);
+				
+			}
+
+			
+		}else{
+			var acctList = $vo.vl.acctList();
+			
+			_.each(acctList, function(obj, index, objList){
+				
+				if($("#chart"+index).length>0){
+					setTimeout(function(){
+						$("#chart"+index).shArcChart({
+							'animate' : true,
+							'data' :[
+							         { text:"금융상품", value:obj['금융상품비율']},
+							         { text:"주식", value:obj['주식비율']},
+							         { text:"선물옵션", value:obj['선물옵션비율']},
+							         { text:"KRX금시장", value:obj['현물상품비율']},
+							         { text:"해외주식", value:obj['해외주식비율']},
+							         { text:"해외선물/FX마진", value:obj['해외선물_FX마진비율']},
+							         { text:"신용대출", value:obj['신용대출비율']},
+							         { text:"예수금", value:obj['예수금비율']},
+							         { text:"기타", value:obj['기타비율']}
+							         ]
+						});
+					}, 300);
+				}
+			});
+		}
+	}
+	// ======================================================
+	$vo.vl = {};	// ko 변수	관리
+	
+	$vo.vl.hasMoreList = ko.observable(false);
+	$vo.vl.totalAsset = ko.observable();
+	$vo.vl.acctList = ko.observableArray([]);	//펀드리스트
+	$vo.vl.currentData = ko.observable(); //현재날짜
+	$vo.vl.sort = ko.observable();	//sort
+	$vo.vl.temp2Exist= ko.observable(false);
+	//sort 처리
+	$vo.vl.changeSort = ko.computed(function(){
+		var list = JSON.parse(JSON.stringify(lc.accountList));
+		
+		if($vo.vl.sort()){
+			
+			list = _.sortBy(list, function(data){
+				return data['총자산'];
+			}).reverse();
+		}
+		
+		var index = 0;
+		_.each(list, function(data, idx, dataList){
+			index = idx;
+			
+			if(idx<lc.defaultShowCnt){
+				data.show = ko.observable(true);
+			}else{
+				data.show = ko.observable(false);
+			}
+		});
+		
+		if(index>lc.defaultShowCnt-1){
+			$vo.vl.hasMoreList(true);
+		}
+		
+		$vo.vl.acctList(list);
+		lc.drawChart();	//차트 그리기
+		
+	},this);
+	//==================================================================
+	$vo.on = {};	// ko 함수 	관리
+	
+	//더보기 처리
+	$vo.on.showMoreList = function(){
+		var acctList = $vo.vl.acctList();
+		var showListCnt = 0;
+		
+		_.each(acctList, function(data, index, dataList){
+			if(!data.show()&&showListCnt<lc.defaultShowCnt){
+				data.show(true);
+				lc.drawChart(index);	
+				showListCnt++;
+				if(index>=acctList.length-1){
+					$vo.vl.hasMoreList(false);
+				}
+			}
+		});
+	}
+	
+	//화면이동 호출
+	$vo.on.movePage = function(arg){
+		
+		//계좌번호 setting
+		lc.cmbAcctList
+		
+		var acctIndex = 0;
+		
+		var acctNo = this['계좌번호'];
+		
+		_.each(lc.cmbAcctList, function(data, index, dataList){
+			if(data.value == acctNo){
+				acctIndex = index;
+			}
+		});
+		
+		http.post('/siw/common/account-index/data.do', {idx:acctIndex}, false);
+		
+		//1: 상세잔고, 2:입출금내역, 3:이체
+		log('acctNo : '+this.acctNo);
+		if(arg==1){
+			//상세잔고
+			location.go('/siw/myasset/balance/540401/view.do');
+		}else if(arg==2){
+			//입출금내역		
+			location.go('/siw/myasset/details/551201/view.do');
+		}else if(arg==3){
+			//이체
+			location.go('/siw/banking-lending/transfer/592201/view.do');
+		}else if(arg==4){
+			//계좌입금
+			location.go('/siw/pension/saving-holder/491011/view.do');
+		}else if(arg==5){
+			//ETF주문
+			location.go('/WEB-APP/wts/main/index.cmd?screen=5002');
+		}
+	}
+	
+	
+	lc.init()
+});
+
+})();
+
+

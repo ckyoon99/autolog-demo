@@ -1,0 +1,184 @@
+/**
+ * 트레이딩> 해외주식> 업무안내> 환전내역조회> 환전내역(382801)
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2017.05.16 | H.YANG | 최초생성 |
+ */
+
+(function (){
+	var optionList = [
+	    {text:"전체",value:""}
+	    ,{text:"원화(KRW)",value:"KRW"}
+		,{text:"미달러(USD)",value:"USD"}
+		,{text:"홍콩달러(HKD)",value:"HKD"}
+		,{text:"일본엔(JPY)",value:"JPY"}
+		,{text:"싱가폴달러(SGD)",value:"SGD"}
+		,{text:"호주달러(AUD)",value:"AUD"}
+		,{text:"뉴질랜드달러(NZD)",value:"NZD"}
+		,{text:"인도네시아루피아(IDR)",value:"IDR"}
+		,{text:"영국파운드(GBP)",value:"GBP"}
+		,{text:"유로(EUR)",value:"EUR"}
+		,{text:"스위스프랑(CHF)",value:"CHF"}
+		,{text:"캐나다달러(CAD)",value:"CAD"}
+		,{text:"중국(CNY)",value:"CNY"}
+		,{text:"베트남(VND)",value:"VND"}
+		,{text:"필리핀(PHP)",value:"PHP"}
+	];
+	
+si.main(function($vo, $svc){
+	var log = $svc.logger('382801');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var combo = $svc.get('combo');
+	var location = $svc.get('location');
+	
+	log('트레이딩> 해외주식> 업무안내> 환전내역조회> 환전내역(382801)');
+
+	var lc = {};	// 로컬변수    관리
+	$vo.vl = {};	// ko 변수   관리
+	$vo.on = {};	// ko 이벤트 관리
+	$vo.fn = {};	// 함수처리
+
+	//+++++++++++++++++++++++++++++ 로컬변수 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	lc.currentDate = new Date();
+	// 계좌콤보
+	lc.cmbAcct	= combo.account('acct-no', function(e,p) {
+		$vo.vl.password('');
+		$ASTX2.clearE2EText(document.getElementById('inq_pw'));
+		setTimeout(function() {
+			$('#inq_pw').focus();
+		}, 300);
+	});
+	// 통화선택
+	lc.currCode	= combo.init('currency',0 , optionList, function(e,p) {});
+	
+	//+++++++++++++++++++++++++++++ 로컬변수 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	
+	//+++++++++++++++++++++++++++++ ko변수 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	$vo.vl.password = ko.observable("");
+	$vo.vl.sellBuyTpCode = ko.observable("0");
+	$vo.vl.fromDate = ko.observable();
+	$vo.vl.toDate = ko.observable();
+	$vo.vl.fromDateDesc = util.koDate('inq_dateFrom', $vo.vl.fromDate, function() {
+		$vo.vl.termSelect('');
+	});
+	
+	$vo.vl.toDateDesc = util.koDate('inq_dateTo', $vo.vl.toDate, function() {
+		$vo.vl.termSelect('');
+	});
+	
+	$vo.vl.termSelect = ko.observable('week');
+	$vo.vl.resultList = ko.observableArray([]);
+	$vo.vl.repeatKey  = ko.observable('');
+	
+	$vo.vl.changeTermSelect = ko.computed(function(){
+		var endDate = "";
+		var startDate = "";
+		
+		if($vo.vl.termSelect()=="today"){
+			endDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+			startDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+		}else if($vo.vl.termSelect()=="week"){
+			endDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+			startDate = util.addDays(util.formatDate(lc.currentDate, 'yyyyMMdd'), -7, 'yyyyMMdd');
+		}else if($vo.vl.termSelect()=="month1"){
+			endDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+			startDate = util.addMonths(util.formatDate(lc.currentDate, 'yyyyMMdd'), -1, 'yyyyMMdd');
+		}else if($vo.vl.termSelect()=="month2"){
+			endDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+			startDate = util.addMonths(util.formatDate(lc.currentDate, 'yyyyMMdd'), -2, 'yyyyMMdd');
+		}else if($vo.vl.termSelect()=="month3"){
+			endDate = util.formatDate(lc.currentDate, 'yyyyMMdd');
+			startDate = util.addMonths(util.formatDate(lc.currentDate, 'yyyyMMdd'), -3, 'yyyyMMdd');
+		}else{
+			
+			startDate  = $vo.vl.fromDate();
+			endDate    = $vo.vl.toDate();
+		}
+		$vo.vl.fromDate(startDate);
+		$vo.vl.toDate(endDate);
+		
+	},this);
+	//+++++++++++++++++++++++++++++ ko변수 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	
+	//+++++++++++++++++++++++++++++ 이벤트처리 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	//Tab이동
+	$vo.on.moveTab = function(type){
+		
+		if(type === '1'){
+			location.go("/siw/trading/foreign-equity/382801/view.do",{});
+		}else if(type === '2'){
+			location.go("/siw/trading/foreign-equity/382802/view.do",{});
+		}
+	};
+	
+	// 조회버튼 클릭
+	$vo.on.search = function(d,e){
+		$vo.vl.resultList([]);
+		$vo.fn.search('');
+	};
+	
+	// 스크롤다운 목록검색
+	$vo.on.getMore = function(d,e){
+		var elementObj = e.target;
+		
+		//  스크롤이 맨 밑으로 올 때  검색키값이 존재할 경우 남은 데이터 조회를 한다.
+		if( elementObj.scrollHeight == ($(elementObj).height()+elementObj.scrollTop)
+		&& $vo.vl.repeatKey() != "" ){
+			
+			$vo.fn.search($vo.vl.repeatKey());
+		}
+		
+		return false;
+	};
+	//+++++++++++++++++++++++++++++ 이벤트처리 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+	
+	//+++++++++++++++++++++++++++++ 함수처리 그룹 시작 +++++++++++++++++++++++++++++++++++++++//
+	// 조회버튼 클릭
+	$vo.fn.search = function(repeatKey){
+		$vo.vl.repeatKey('');
+		
+		if(util.chkAcctPwd($vo.vl.password(),"acct-pwd") == false)
+			return;
+		
+		var params = {
+			acctNo: lc.cmbAcct.val()
+			,acctPwd: $vo.vl.password()
+			,currCode: lc.currCode.val()
+			,sellBuyTpCode: $vo.vl.sellBuyTpCode()
+			,strtYmd: util.replaceAll($vo.vl.fromDate(), '.', '')
+			,endYmd: util.replaceAll($vo.vl.toDate(), '.', '')
+			,repeatKey: repeatKey
+		};
+		$ASTX2.getE2EDataIDs(
+			['inq_pw'],
+			function onSuccess(data){
+				$.ajax({
+					url:'/common/setPassword.jsp',
+					data:data,
+					type:'POST',
+					async:false,
+					dataType:'json',
+					success:function(json){
+						http.post('/siw/trading/foreign-equity/382801/data.do', params).then(function(rs) {
+							if(rs) {
+								if( rs['repeatKey'].trim() ){
+									$vo.vl.repeatKey(rs['repeatKey'].trim());
+								}
+								
+								$vo.vl.resultList($vo.vl.resultList().concat(rs.list01));
+							}
+						});
+					}
+				});
+			},function onFailure(){
+				alert($ASTX2.getLastError());
+			}
+		)
+	};
+	//+++++++++++++++++++++++++++++ 함수처리 그룹 종료 +++++++++++++++++++++++++++++++++++++++//
+});
+
+})();

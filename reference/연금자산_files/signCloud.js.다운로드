@@ -1,0 +1,677 @@
+/**
+ * 클라우드 공동인증서 관련
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2023.02.14  | 고예슬 | 최초생성 |
+ */
+(function (){
+
+si.service('signCloud', function($svc) {
+    var log = $svc.logger('signCloud');
+    var installed = false;
+    var http = $svc.get('http');
+    var ajax = $svc.get('ajax');
+    var lpopup = $svc.get('lpopup');
+    var uiloading = $svc.get('uiLoading');
+    var pwdFailCount = 0;
+    
+    return {
+    	SKCloud_init: SKCloud_init,
+    	isInstalled: isInstalled,
+    	gmsCertSign: gmsCertSign,
+    	gmsCertNeSign: gmsCertNeSign,
+    	gmsCertNeSignNopass: gmsCertNeSignNopass,
+    	Cloudrenewal: Cloudrenewal,    	
+    	ShowCertManager: ShowCertManager,
+    };
+
+    /**
+     * 클라우드 공동인증서 init
+     */
+    function SKCloud_init(){
+    	console.log("SKCloud_init");
+    	var deferred = $.Deferred();
+
+    	if(!isInstalled()){
+			uiloading.on();
+			
+			
+			var date = new Date();
+            var dateStr = date.getFullYear() + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2);
+            var scriptElem = document.createElement('script');
+            scriptElem.async = false;
+            if(window.location.hostname.split('.')[0] == 'dwww' || window.location.hostname.split('.')[0] == 'twww' || window.location.hostname.split('.')[0] == 'lwww'){ 
+                scriptElem.src = "https://tweb.signkorea.com:8700/cloud/v1/utf8/js/koscom_cloud.js" + '?dt=' + dateStr;
+            }else{  
+                scriptElem.src = "https://center.signkorea.com:8700/cloud/v1/utf8/js/koscom_cloud.js" + '?dt=' + dateStr;
+            }
+            document.querySelector('body').appendChild(scriptElem);
+            
+            
+            scriptElem.onload = function (e, f) {
+            	
+            	if(CloudCert.doubleClickBlock(arguments.callee)) {
+    	    		return;
+    	    	}
+
+    	    	var importPC = 0x01;
+    	    	var importSmart = 0x02;
+    	    	var issueCert = 0x04;
+    	    	var importFile = 0x08;
+    	    	var siteCode = "";
+    	    	var apiKey = "";
+    	    	if(location.hostname.indexOf("dwww") > -1 ){
+    	    		siteCode = "U1MwMDAyXzAy";
+    	    		apiKey   = "106cfeda3805b7301fad0ad2f9588a1e3e6271e78912de524054c333f6802469";
+    	    	}else if(location.hostname.indexOf("www") > -1 ){
+    	    		siteCode = "U1MwMDAyX1NISU5IQU5TRUNfVw==";
+    	    		apiKey   = "b279b2da7bf82045357c072ca857b09ce12b23b5291f5ae8eddfc393dc3f2008";
+    	    	}else{
+    	    		siteCode = "U1MwMDAyX1NISU5IQU5TRUNfVzI=";
+    	    		apiKey   = "2c80c7ebf082796c74bed2de55a157a3b10d5edd5a14f6e28cf6f4ed28ae4ee1";
+    	    	}
+    	    	
+    	    	var initParam;
+    	    	initParam = {
+    	    			uiOption : {
+    	    				certImportOption : importPC | importSmart | issueCert | importFile ,
+    	    				issueClause : true,
+    	    				issueOpenUrl : {
+    	    									isOpenUrl: true,
+    	    									issueUrl: 'https://www.shinhansec.com/siw/customer-center/certification/710001/view.do',
+    	    									renewUrl: 'https://www.shinhansec.com/siw/customer-center/certification/710003/view.do'
+    	    								},
+    	    				/*
+    	    				 * lang : 사용 언어('ko' : 한국어, 'en' : 영어)
+    	    				 * expiredCertFilter : 전자서명시 만료된 인증서 필터링 여부(true: 필터링 O, false: 필터링 X)
+    	    				 * checkPasswordCertDelete : 인증서 삭제시 PIN 입력 여부(true : PIN 확인, false : PIN 미확인 )
+    	    				 */
+    	    				 lang : 'ko',
+    	    				 //전자서명시 만료된 인증서 필터링 여부 true/false
+    	    				 expiredCertFilter : false,
+    	    				 //삭제시 패스워드 체크 여부 true/false
+    	    				 checkPasswordCertDelete : true,
+    	    				 // 인증서 다운로드 활성화: true/ 비활성화:false
+    	    				 enableExport : true,
+    	    				 //pc 인증서 가져오기 시 만료된 인증서 필터링 여부 true:필터링 O, false: 필터링 X
+    	    				 importCertFilter : true,
+    	    				 //인증서 비밀번호 최대 오입력 허용 횟수(PC 인증서 가져오기) max=5
+    	    				 errMaxCount : 5,
+    	    				 //NA 설치 프로그램 다운로드 경로
+    	    				 certUrl:'https://www.shinhansec.com/siw/solution/download/SKCertServiceSetup_v2.5.43_302.exe'
+    	    				 
+    	    			},
+    	    			setMatched: {
+    	    				siteCode: siteCode
+    	    			},
+    	    			license: {
+    	    				
+    	    				siteCode: siteCode,
+    	    				apiKey: apiKey,
+    	    				customID: 'SS0002',
+    	    				extraConnectionInfo: ''
+    	    			},
+    	    			externalCss : {
+    	    				cssUrl: ''
+    	    			},
+    	    			signSiteOption : {
+    	    				//서명 결과값 인코딩 : base64, hex
+    	    				signResultEncoding : 'base64',
+    	    				//서명 원문 charset(고정값)
+    	    				plainCharset : 'euc-kr'
+    	    			},
+    	    			iframeOption : {
+    	    				//투명도
+    	    				opacity: 0.72,
+    	    				//배경 색상
+    	    				backgroundColor : '#ffffff'
+    	    			}
+    	    		};
+    	    	
+    	    	if(CloudCert.initCloudCert(initParam)){
+    	    		console.log("init sucess");
+    	    		installed = true;
+    	    		uiloading.off();
+    	    		deferred.resolve();
+    	    	}else{
+    	    		console.log("init fail");
+    	    		deferred.reject('init fail');
+    	    	}
+            	
+            };
+            
+	    }else {
+    		deferred.resolve();
+    	}
+    	
+	    return deferred.promise();
+    }
+    
+  //프로그램 설치여부 확인
+    function isInstalled() {
+    	//var deferred = $.Deferred();
+    	
+		if(typeof CloudCert != "undefined" && typeof CloudCert === 'object'){
+			//deferred.resolve();
+			return true;
+		} else {
+			//deferred.reject('클라우드 공동인증서 모듈이 로딩되지 않았습니다.');
+			return false;
+		}
+		
+		//return deferred.promise();
+    }
+
+    //축약서명
+    function gmsCertNeSign(param) {
+    	var deferred = $.Deferred();
+    	var dn = "";
+    	try {
+    		var $userInfo = $svc.get('$userInfo');
+    		var certUse = $userInfo.cert_use;
+    		var appCert = $userInfo.appCert;
+    		
+    		if('T' == certUse) {
+    			//조회전용 권한...
+    			lpopup.confirm("본 화면은 공동인증서가 필요한 화면입니다.<br/>공동인증서로 재로그인하시겠습니까?").then(function(ok) {
+    				if(ok) {
+    					page.login();
+    				} 
+    				deferred.reject();
+    			});
+    			return deferred.promise();
+    		} else if('N' == certUse) {
+    			//인증서 상태 비상 skip 처리
+    			param.signed_data = '';
+            	param.plain_text = '';
+            	return deferred.resolve(param);
+    		}
+    		dn = $userInfo.dn;
+    		if(dn == null || dn == "null") {
+    			dn = "";
+    		}
+    	} catch (err) {
+    		log("$userInfo err : ", err);
+    	}
+    	
+    	var plaintext = JSON.stringify(param);
+
+    	if(pwdFailCount > 4) {
+    		lpopup.alert("공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+    			deferred.reject();
+    		});
+            return deferred.promise();
+        }
+
+    	SetMatchedCert(dn,'nesign', '', plaintext ).then(function(res){
+         	if(res != ""){
+         		param.dn = res.dn;
+         		param.signed_data = res.signed_data;
+         		deferred.resolve(param);
+         	}else{
+         		deferred.reject();
+         	}
+         	
+         	return deferred.promise();
+         })
+         	
+
+        return deferred.promise();
+    }
+
+    //축약전자서명 (password 입력없이 처리, 이전에 인증된 인증서 정보로 서명만 처리함...)
+    function gmsCertNeSignNopass(param) {
+    	var deferred = $.Deferred();
+    	var dn = "";
+    	try {
+    		var $userInfo = $svc.get('$userInfo');
+    		var certUse = $userInfo.cert_use;
+    		
+    		var appCert = $userInfo.appCert;
+    		
+    		if('T' == certUse) {
+    			//조회전용 권한...
+    			lpopup.confirm("본 화면은 공동인증서가 필요한 화면입니다.<br/>공동인증서로 재로그인하시겠습니까?").then(function(ok) {
+    				if(ok) {
+    					page.login();
+    				} 
+    				deferred.reject();
+    			});
+    			return deferred.promise();
+    		} else if('N' == certUse) {
+    			//인증서 상태 비상 skip 처리
+    			param.signed_data = '';
+            	param.plain_text = '';
+            	return deferred.resolve(param);
+    		}
+
+    		dn = $userInfo.dn;
+    		if(dn == null || dn == "null") {
+    			dn = "";
+    		}
+    	} catch (err) {
+    		log("$userInfo err : ", err);
+    	}
+    	
+    	var plaintext = JSON.stringify(param);
+
+    	if(pwdFailCount > 4) {
+    		lpopup.alert("공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+    			deferred.reject();
+    		});
+            return deferred.promise();
+        }
+
+    	SetMatchedCert(dn,'npsign', '', plaintext ).then(function(res){
+         	if(res != ""){
+         		//여기다가 param을 전체로 넘겨주자 ! 
+         		param.dn = res.dn;
+         		param.signed_data = res.signed_data;
+         		param.plain_text = res.plain_text;
+         		deferred.resolve(param);
+         	}else{
+         		deferred.reject();
+         	}
+         	
+         	return deferred.promise();
+         })
+         	
+
+        return deferred.promise();
+    }
+    
+    function clearCert()
+    {
+    	var unset_options =  {};
+
+    		CloudCert.UnSetMatchedCert(unset_options, function(res) {
+    		});
+
+    }
+
+    //인증서정책 필터링
+    function setconfig()
+    {
+    	var policyFilter = {
+    			mode : 273,
+    			OID : '1.2.410.200004.5.1.1.10'
+    	};
+
+    	CloudCert.SetPolicyFilter(policyFilter);
+    }
+
+    
+    //
+    //전자서명
+    function gmsCertSign(dn, password, param) {
+    	var deferred = $.Deferred();
+        	
+        var plaintext = "testplain";
+        
+        if(!dn) {
+        	dn = "";
+        } 
+        
+        if(!password) {
+        	password = "";
+        }
+        
+        if(param) {
+        	plaintext = JSON.stringify(param);
+        }
+
+        if(pwdFailCount > 4) {
+        	lpopup.alert("클라우드 공동인증서 비밀번호 입력횟수가 초과되었습니다.").then(function() {
+        		deferred.reject();
+        	});
+             return deferred.promise();
+        }
+        
+        	
+        SetMatchedCert(dn,'fsign', password, plaintext).then(function(res){
+        	if(res != ""){
+        		deferred.resolve(res);
+        	}else{
+        		deferred.reject();
+        	}
+        	
+        	return deferred.promise();
+        })
+        	
+      	return deferred.promise();
+    }
+    
+    //인증서선택
+    function SetMatchedCert(dn, stype, password, plaintext)
+    {
+    	
+    	var deferred = $.Deferred();
+    	
+    	if(isInstalled()){
+    		return signProcess(dn, stype, password, plaintext);
+    	} else {
+    		return SKCloud_init().then(function(){
+    			return signProcess(dn, stype, password, plaintext);
+    		});
+    	}
+    	
+    	
+    	function  signProcess(dn, stype, password, plaintext){
+    		if(CloudCert.doubleClickBlock(arguments.callee)) {
+        		return;
+        	}
+
+        	var signtypeval = "";
+
+        	setconfig();
+
+        	var SetMatchedCert_options =
+        	{
+        		prefix: dn,
+        		suffix:password,
+        		needPin: (stype == "npsign" ? false : true),	//인증서 선택정보 유지시 PIN 입력 여부 입력:true/미입력:false
+        		//isshow:true
+        	};
+
+        	//전자서명
+        	if(stype == "fsign")
+        	{
+        		signtypeval = 1;
+        	}	
+        	//축약서명
+        	if(stype == "nesign")
+        	{
+        		signtypeval = 3;
+        	}
+        	//축약전자서명
+        	if(stype == "npsign")
+        	{
+        		signtypeval = 3;
+        	}
+        	
+        	//cmssign
+/*        	if(stype == "cmssign")
+        	{
+        		signtypeval = 2;
+        	}
+
+        	if(stype == "nonesign")
+        	{
+        		alert("기능없음");
+        		signtypeval = 4;
+        	}
+*/
+        	// 전자서명 / CMS서명
+        	if(signtypeval == 1 || signtypeval == 2 || signtypeval == 4)
+        	{
+        		var unset_options =  {};
+        		CloudCert.ClearSession(function(res) {
+        			if(res.code == undefined || res.code == '') {
+        				CloudCert.UnSetMatchedCert(unset_options, function(res) {
+        					if(res.code == undefined || res.code == '') {
+        						CloudCert.SetMatchedCert(SetMatchedCert_options, function(res) {
+        							if(res.code == undefined || res.code  == '') {
+        								//인증서 선택성공 후 전자서명/CMS서명 진행
+        								CloudSign(dn, signtypeval, password, plaintext).then(function(dn){
+        									if(dn != ""){
+        										deferred.resolve(dn);
+        									}else{
+        										deferred.reject();
+        									}
+        									return deferred.promise();
+        								})
+        							} else {
+        								if (res.code == 9001) {
+        									pwdFailCount++;
+        		                        	lpopup.alert("공동인증서 비밀번호 오류 입니다. [" + pwdFailCount + "회]").then(function() {
+        		                        		deferred.reject();
+        		                        	});
+        								}
+        								else if(res.code == 2000)
+        								{
+        		                        	deferred.reject();
+        								}
+        								else {
+        									pwdFailCount = 0;
+        		                        	lpopup.alert("SetMatchedCert 실패 : [" + res.code + "]" + res.message).then(function() {
+        		                        		deferred.reject();
+        		                        	});
+        								}
+
+        							}
+        						});
+        					} else {
+        						lpopup.alert("UnSetMatchedCert 실패 : [" + res.code + "]" + res.message).then(function() {
+	                        		deferred.reject();
+	                        	});
+        					}
+        				});
+        			} else {
+        				lpopup.alert("ClearSession 실패 : [" + res.code + "]" + res.message).then(function() {
+                    		deferred.reject();
+                    	});
+        			}
+        		});
+        	}
+        	//축약서명
+        	else if(signtypeval == 3)
+        	{
+        		CloudCert.SetMatchedCert(SetMatchedCert_options, function(res) {
+        			if(res.code == undefined || res.code  == '') {
+						//인증서 선택성공 후 전자서명/CMS서명 진행
+						CloudSign(dn, signtypeval, password, plaintext).then(function(dn){
+							//console.log("7 : CloudSign then 진입 - %o", dn);
+							if(dn != ""){
+								deferred.resolve(dn);
+							}else{
+								deferred.reject();
+							}
+							return deferred.promise();
+						})
+					} else {
+						if (res.code == 9001) {
+							pwdFailCount++;
+                        	lpopup.alert("공동인증서 비밀번호 오류 입니다. [" + pwdFailCount + "회]").then(function() {
+                        		deferred.reject();
+                        	});
+						}
+						else if(res.code == 2000)
+						{
+                        	deferred.reject();
+						}
+						else {
+							pwdFailCount = 0;
+                        	lpopup.alert("SetMatchedCert 실패 : [" + res.code + "]" + res.message).then(function() {
+                        		deferred.reject();
+                        	});
+						}
+
+					}
+        		});
+        	}
+        	
+        	return deferred.promise();
+    	}
+    	
+    }
+    
+    //전자서명
+    function CloudSign(dn, signtypeval, password, plaintext)
+    {
+    	var deferred = $.Deferred();
+
+    	var options =  {
+    		plain: plaintext ,
+    		// signtype // 0: pkcs1, 1: koscom p7 sign, 2: cms(default), 3: 축약서명, 4: 원문없는 서명
+    		signtype: signtypeval,
+    		// signProtocol // 0 : 서명 데이터(default), 1 : dn + signdata + r
+    		signprotocol: 1,
+    		// signInputType // 0: plain 그대로(default), 1: digestInfo, 2: digest
+    		signInputType: 0,
+    		pin:password,
+    		dn: dn
+    	};
+
+    	var callback = function(res) {
+    		if(res.code  == undefined || res.code  == '') {
+
+    			if(res.dn == ""){
+    				deferred.reject();
+    			}else{
+    				//console.log("CloudSign : %o", res);
+    				deferred.resolve({
+                        dn: res.dn,
+                        r_value: res.r,
+                        signed_data: res.signature,
+                        plain_text : plaintext
+                    });
+    				
+    			}
+    			
+    		} else {
+    			// 오류 코드 처리
+    			switch(res.code) {
+    				/*
+    				case "2000"  :
+    					res.message = "취소 되었습니다.";
+    					break;
+    					*/
+    				case "20933" :
+    					res.message = "휴대폰 인증이 취소 되었습니다.";
+    					break;
+    				case 5180  :
+    					res.message = "비밀번호 오류로 인증서가 잠겼습니다.";
+    					break;
+    				default:
+    			}
+    			alert(res.message + ' [' + res.code + ']');
+
+    		}
+    		
+    		return deferred.promise();
+    	}
+    	
+    	CloudCert.CloudSign(options, callback);
+    	return deferred.promise();
+    }
+
+    
+    //인증서 갱신
+    function Cloudrenewal()
+    {
+
+    	if(CloudCert.doubleClickBlock(arguments.callee)) {
+    		return;
+    	}
+
+    	var deferred = $.Deferred();
+    	CloudCert.ClearSession(function(res) {
+    		if(res.code == undefined || res.code == '') {
+    			var options =  {
+    				relssue: undefined // 갱신
+    			}
+
+    			var callback = function(res) {
+    				if(res.code  == undefined || res.code  == '')
+    				{
+    					//console.log("인증서갱신 성공");
+    					deferred.resolve({
+                            status: 'success'
+                        });
+    				}
+    				else
+    				{
+    					//console.log("인증서갱신 실패 : [" + res.code + "]" + res.message);
+    					deferred.resolve({
+                            status: 'fail',
+                            code: res.code,
+                            message: res.message,
+                        });
+    				}
+    				
+    				return deferred.promise();
+    			}
+    			CloudCert.CloudRenewal(options,callback);
+    		} else {
+    				alert("ClearSession 실패 : [" + res.code + "]" + res.message);
+    				return;
+    		}
+    	});
+    	
+    	//console.log("Cloudrenewal 끝");
+    	return deferred.promise();
+    }
+    //인증서 폐지
+    function Cloudrevoke()
+    {
+
+    	if(CloudCert.doubleClickBlock(arguments.callee)) {
+    		return;
+    	}
+    	CloudCert.ClearSession(function(res) {
+    		if(res.code == undefined || res.code == '') {
+    			var options =  {
+    				// reson: 1(폐기), reason: 6 (정지)
+    				reason: 1
+    			}
+
+    			var callback = function(res) {
+    				if(res.code  == undefined || res.code  == '')
+    				{
+    					alert("인증서폐지 성공");
+    				}
+    				else
+    				{
+    					alert("Cloudrevoke 실패 : [" + res.code + "]" + res.message);
+    				}
+    			}
+    			CloudCert.CloudRevoke(options,callback);
+    		} else {
+    				alert("ClearSession 실패 : [" + res.code + "]" + res.message);
+    				return;
+    		}
+    	});
+    }
+    //인증서 내용보기
+    function ShowCertManager()
+    {
+
+    	if(CloudCert.doubleClickBlock(arguments.callee)) {
+    		return;
+    	}
+    	
+    	var deferred = $.Deferred();
+    	CloudCert.ClearSession(function(res) {
+    		if(res.code == undefined || res.code == '') {
+    			let options = {};
+    			options.onlyShow = true;
+    			CloudCert.ShowCertManager(options, function(res) {
+    				if(res.code == undefined || res.code  == '') {
+    					//성공
+    					deferred.resolve({
+                            status: 'success'
+                        });
+    				} else {
+    					//console.log("ShowCertManager : [" + res.code + "]" + res.message);
+    					deferred.resolve({
+                            status: 'fail',
+                            code: res.code,
+                            message: res.message,
+                        });
+    				}
+    				return deferred.promise();
+    			});
+    		} else {
+    				alert("ClearSession 실패 : [" + res.code + "]" + res.message);
+    				return;
+    		}
+    	});
+    	
+    	return deferred.promise();
+    }
+    
+    
+    
+});
+
+})();

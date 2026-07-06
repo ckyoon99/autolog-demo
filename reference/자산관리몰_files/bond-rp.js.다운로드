@@ -1,0 +1,50 @@
+/** 
+ * Screen: 자산관리몰> 채권/RP> 채권/RP 유틸리티
+ * Author: 황혜경
+ * Desc: 채권/RP 유틸리티
+ * WR: WR26115-DP1(2026-03-25) 신규 화면 
+ */
+(function (){
+
+si.config(function($cfg){
+	var rootBinder = $cfg.get('rootBinder');
+	rootBinder.addService('bondRp');
+});	
+
+//컨트롤러 로딩
+si.util.load('/siw/common/biz', [
+	'/wealth-management/fund/popup/commL01.js',
+]);	
+
+si.service('bondRp', function($svc) {
+	var log = $svc.logger('bondRp');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	var location = $svc.get('location');
+	var menu = $svc.get('menu');
+	
+	var o = {};
+	o.getPath = function() {
+		return '/siw/common/biz/wealth-management';
+	};
+	
+	//=====================================================================
+	//*****펀드공통 팝업
+	//투자상담문의 팝업
+	o.popCounsel = function(vo,ev){
+		//필수PARAM
+		//1. 로그인여부 (true, false)
+		lpopup.open('commL01', '/siw/html/wealth-management/fund/commL01.html', {isLogin : si.data.isLogin()}).then(function(rsPop) {
+			util.setFocus(ev);
+			if(rsPop) {
+				
+			}
+		});
+	};	
+	
+	return o;
+});
+
+})();

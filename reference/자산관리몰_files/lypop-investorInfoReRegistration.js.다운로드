@@ -1,0 +1,61 @@
+/**
+ * 투자자 정보 재등록 안내 - 팝업
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2025.12.09 | 이호준 | 최초생성 |
+ */
+(function (){
+
+si.controller('layerInvestorInfoReRegistration', function($vo, $svc){
+	var log = $svc.logger('layerInvestorInfoReRegistration');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+		
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+
+	// 이벤트 함수 관리
+	// ==================================================
+	$vo.on.clickRegistration = function(){
+		lpopup.open('layerInvestorInfo', '/siw/common/biz/common/lypop-investorInfo.html', {
+			}).then(function(data) {
+				if (data.result) {
+					lpopup.close($vo, {
+						result: true
+					});
+				} else {
+					lpopup.close($vo, {
+						result: false
+					});
+				}
+			});
+	};
+
+	// 닫기 버튼 
+	$vo.on.close = function () {
+		// 이전 페이지가 로그인 페이지 or 히스토리 없음 or 다른 도메인인 경우 메인으로 이동.
+//		if(!document.referrer 
+//				|| document.referrer.includes('/login/view.do')
+//				|| !(document.referrer.includes('shinhaninvest') || document.referrer.includes('shinhansec'))) {
+//			$svc.get('location').go('/siw/main/front/view.do');
+//		} else {
+//			history.back();
+//		}
+		$svc.get('location').go('/siw/main/front/view.do');
+		
+		lpopup.close($vo, {
+			result: false
+		});
+	};
+	
+	// 지역함수
+	// ==================================================
+	function init() {
+	}
+	
+	init();
+});
+
+})();

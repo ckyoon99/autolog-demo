@@ -1,0 +1,1123 @@
+/**
+ * 투자자정보 확인서 공통 Component
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.04.04 | 박호원 | 최초생성 |
+ */
+(function (){
+
+si.component('investorInfo', function($svc) {
+	var log = $svc.logger('investorInfo');
+	var http = $svc.get('http');
+	var wpopup = $svc.get('wpopup');
+	
+	var lc = {};
+	var vl = {};
+	var on = {};
+	
+	return {
+		viewModel: function(params) {
+			//
+			log("params = ", params);
+			this.vl = params;
+			this.on = {};
+			vl = this.vl;
+			on = this.on;
+			
+			// 변수관리
+			// ==================================================
+			vl.investorType = ko.observable('');	//개인/법인구분
+			vl.custName = ko.observable('');
+			vl.generalTp = ko.observable('');
+			vl.generalTpName = ko.observable('');
+			vl.derivativeTp = ko.observable('');
+			vl.derivativeTpName = ko.observable('');
+			vl.limitDate = ko.observable('');
+			vl.lastRegiYmd = ko.observable('');
+			vl.investInfoAgree = ko.observable('');
+			vl.investPersuasion1 = ko.observable('');
+			vl.custGubun = ko.observable('');		//일반/전분투자자 구분
+			vl.currentInvestorTendency 	= ko.observable(false);
+			// 이벤트 함수 관리
+			// ==================================================
+			
+			vl.init = init;
+			
+			// 지역함수
+			// ==================================================
+			//개인/법인 구분
+			function init() {
+				if (params.iscurrentInvestorTendency) {
+					vl.currentInvestorTendency(true);
+				}
+				
+				http.post("/siw/banking-lending/customer-info/59730101/data.do", {}, false).then(function(body) {
+					log("59730101 body : ", body);
+					if(body && body.result) {
+						vl.investorType(body['개인법인구분']);
+						
+						vl.custName(body['사용자이름']);
+						vl.generalTp(body['투자성향등급']);
+						vl.generalTpName(body['투자성향등급명']);
+						vl.derivativeTp(body['파생투자성향등급']); 
+						vl.derivativeTpName(body['파생투자성향등급명']); 
+						vl.limitDate(body['만기일자']);
+						vl.lastRegiYmd(body['투자성향최종등록일자']);
+						vl.investInfoAgree(body['정보제공동의여부']);
+						vl.investPersuasion1(body['금융투자상품투자권유']);
+						vl.custGubun(body['투자자구분']);	//2017-03-09 추가
+						
+						if (vl.custGubun() == '2') {
+							$svc.get('lpopup').alert("고객님은 현재 전문투자자입니다.<br/>투자정보확인서 등록 시 일반투자자로 전환됩니다. 등록하시겠습니까?");
+						}
+					}
+				}, function(error) {
+					log("http reject!!!");
+					//개인/법인 조회 실패시, 에러처리
+					page.error();
+				});
+			}
+			//
+			init();
+			
+			// 현투 성향일 경우에만 스크롤 이동 하도록 설정
+			if (vl.currentInvestorTendency()) {
+				// 바인딩 등록 
+				ko.bindingHandlers.ready = {
+					init: function (el) {
+						// 하위 데이터 바인딩(ko if) 완료 시점 때문에 0.005초 딜레이 
+						setTimeout(function() {
+							const isSkip = document.querySelector('.readonly_end');
+							if(isSkip) {
+								isSkip.scrollIntoView({
+									behavior: 'smooth',
+									block: 'start'
+								})
+							}
+						}, 5);
+					}
+				}
+			}
+		},
+		template: $svc.get('http').html('/siw/common/biz/common/component-investorInfo.html')
+	}
+});
+
+//투자자성향 3번 변경하여 변경 불가능한 고객 팝업
+si.controller('layerInvestorSumOver', function($vo, $svc){
+	var log = $svc.logger('layerInvestorSumOver');
+	var lpopup = $svc.get('lpopup');
+	var util = $svc.get('util');
+		
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+	
+	// 이벤트 함수 관리
+	// ==================================================
+	//닫기
+	$vo.on.close = function() {
+		lpopup.close($vo);
+	};
+	
+});
+
+//개인용 투자자확인서
+si.component('investorPersonalInfo', function($svc) {
+	var log = $svc.logger('investorPersonalInfo');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	
+	var lc = {};
+	var vl = {};
+	var on = {};
+	
+	return {
+		viewModel: function(params) {
+			$svc.get('uiHelper').updateUI($('#component-investorPerosnal').get(0));
+			log("params = ", params);
+			this.vl = params;
+			this.on = {};
+			vl = this.vl;
+			on = this.on;
+			
+			// 변수관리
+			// ==================================================
+			//투자자성향 표시 유형
+			//1. 투자성향 등급 & 파생투자성향등급
+			//2. 투자자정보 미제공
+			//3. 투자자정보 미작성
+			//4. 정보만료
+			//5. 전문투자자 2017-03-09 추가
+			vl.dispType = ko.observable('');
+			vl.dispTypeChange = ko.computed(function(arg) {
+				if(util.isEmpty(vl.limitDate())) {
+					//3:투자자정보 미작성
+					vl.dispType('3');
+				} else if(vl.limitDate() < util.formatDate(new Date(), 'yyyyMMdd')) {
+					//4:정보만료
+					vl.dispType('4');
+				}else if(vl.custGubun() == '2'){
+					//5:전문투자자	
+					vl.dispType('5');
+				} else if(vl.investInfoAgree() != 'Y' || vl.generalTp() == '') {
+					//2:투자자정보 미제공
+					vl.dispType('2');
+				} else {
+					//1:투자성향 등급 및 파생투자성향등급
+					vl.dispType('1');
+				}
+			}, this);
+			
+			vl.agreeBool 	= ko.observable(true);
+			
+			vl.infoAgree 	= ko.observable(vl.investInfoAgree());		//정보제공동의여부(Y.정보제공, N.정보미제공)
+			vl.persuasion1 	= ko.observable(vl.investPersuasion1());	//투자권유희망여부(Y.투자권유 희망, N.투자권유를 원하지 않음)
+			
+			vl.birth		= ko.observable('');	//생년월일
+			vl.birthDesc	= util.koDate('investor_birth', vl.birth);
+			vl.s0 			= ko.observable('');	//연령대
+			vl.checkAge 	= ko.observable(false);	//연령조회여부	(true:조회됨, false:조회안됨)
+			
+			vl.s1 			= ko.observable('');	//총 자산규모
+			vl.s2 			= ko.observable('');	//연간 소득현황
+			vl.s3_1 		= ko.observable('');	//재산 현황 - 보장성 상품
+			vl.s3_2 		= ko.observable('');	//재산 현황 - 투자성 상품
+			vl.s3_3 		= ko.observable('');	//재산 현황 - 대출성 상품 
+			vl.s3_4 		= ko.observable('');	//재산 현황 - 기타 상품 
+			
+			//금융투자상품 투자경험
+			vl.s4_1_1 		= ko.observable(false);
+			vl.s4_1_2 		= ko.observable(false);
+			vl.s4_1_3 		= ko.observable(false);
+			vl.s4_1_4 		= ko.observable(false);
+			vl.s4_1_5 		= ko.observable(false);
+			vl.s4_2 		= ko.observable('');	//투자경험 기간
+			vl.checkNoExp1 	= ko.observable(false);	//투자경험 없음
+			
+			vl.s5 			= ko.observable('');	//적정성원칙 대상 상품 투자경험
+			vl.s6 			= ko.observable('');	//금융지식 수준 / 이해도
+			vl.s7 			= ko.observable('');	//취득 및 처분 목적
+			vl.s8 			= ko.observable('');	//투자 목적
+			vl.s9 			= ko.observable('');	//투자예정기간
+			vl.s10 			= ko.observable('');	//기대수익 및 손실감내도
+			vl.s11 			= ko.observable('');	//취약 금융소비자 여부
+			vl.streNumt 	= ko.observable(0);	    //저장횟수
+			vl.reRegiCauseCode 		= ko.observable(''); 	 //재등록 사유
+			
+			vl.checkConfirm = ko.observable(false);	//동의여부
+			
+			//vl.textBlockTitle = ko.observable();	//투자자정보확인 유효기간 설정 동의, 투자권유 불원 및 투자자정보 미제공 확인
+			//vl.textBlockDesc = ko.observable();		//내용
+			
+			//금융투자상품 투자경험이 없는 경우
+			vl.changeCheckNoExp = ko.computed(function(arg){
+				if(vl.checkNoExp1()){
+					vl.s4_1_1(false);
+					vl.s4_1_2(false);
+					vl.s4_1_3(false);
+					vl.s4_1_4(false);
+					vl.s4_1_5(false);
+					vl.s4_2('');
+				}
+			});
+			
+			//투자자정보 제공여부 변경시 처리
+			vl.changeInfoAgree = ko.computed(function(arg){
+				if(vl.infoAgree() == 'Y') {
+					vl.agreeBool(true);
+					shCalendar.init();
+					
+				} else if(vl.infoAgree() == 'N') {
+					vl.agreeBool(false);
+					/*if(vl.persuasion1() == "Y") {
+						lpopup.alert('정보 미제공시 투자권유를 희망 할 수 없습니다!').then(function(){
+							vl.persuasion1('N');
+						});
+					} else {
+						vl.persuasion1('N');
+					}*/
+				}
+			});
+			
+			//생년월일 입력시 연령대 선택 처리
+			vl.changeAge = ko.computed(function(arg){
+				if(vl.birth() != "" && vl.birth().length == 8) {
+					var age = calAge(vl.birth());
+					if(age < 19){
+						vl.s0('1');
+					}else if(age >= 19 && age < 35){
+						vl.s0('2');
+					}else if(age >= 35 && age < 50){
+						vl.s0('3');
+					}else if(age >= 50 && age < 65){
+						vl.s0('4');
+					}else if(age >= 65 && age < 80){
+						vl.s0('5');
+					}else if(age >= 80){
+						vl.s0('6');
+					}
+					$("input[name='radio0']").attr('disabled', true);
+				}
+			});
+			
+			//결과 전달용
+			vl.getData = getData;
+			vl.validation = validation;
+			vl.setData = setData;
+			vl.sendData = sendData;
+			vl.sendRiskJoinData = sendRiskJoinData;
+			vl.clearData = clearData;
+			
+			// 이벤트 함수 관리
+			// ==================================================
+			
+			//투자성향 정보 조회
+			getData();
+			
+			//--------------------------------------------------
+	        // 투자자정보확인서(P)
+	        //--------------------------------------------------
+	        on.wpopupInvestInfo = function (a, event){
+				
+				event.preventDefault();
+
+				var params = {
+	            		custName : vl.custName(),			//사용자이름
+	            		generalTp : vl.generalTp(),			//투자성향등급
+	            		generalTpName : vl.generalTpName(),	//투자성향등급명
+	            		persuasion1 : vl.persuasion1(), 	//투자권유희망여부
+	            		infoAgree : vl.infoAgree(),			//정보제공동의여부
+	            		limitDate : vl.limitDate(),			//만기일자
+	            		lastRegiYmd : vl.lastRegiYmd(),		//투자성향최종등록일자
+	            		streNumt : vl.streNumt(),			//저장횟수
+	            		corporation : "N"					//법인용 FLAG
+	            };
+	            
+	            var option = {height:1100, width: 1000};
+	            
+	            wpopup.open('/siw/common/popup/investInfoPopup/view-popup.do', 'investInfoPopup', params, option);
+	        }
+	        
+			// 지역함수
+			// ==================================================
+			//데이터 조회
+			function getData() {
+				log("vl.investorType() = " + vl.investorType());
+				var prm = {
+					investorType: vl.investorType()	//개인/법인구분
+				};
+				http.post("/siw/banking-lending/customer-info/59730102/data.do", prm).then(function(rsHttp) {
+					//console.log("rsHttp: ", rsHttp);
+					if(rsHttp["연령확인여부"] == "Y"){
+						vl.s0(rsHttp["연령구분코드2"]);
+						vl.checkAge(true);
+					}
+					
+					if(rsHttp.result) {
+						vl.infoAgree(rsHttp["정보제공동의여부"]);
+						vl.persuasion1(rsHttp["투자권유희망여부"]);
+						
+						vl.s1(rsHttp["버전2투자성향답변내용1"]);
+						vl.s2(rsHttp["버전2투자성향답변내용2"]);
+						vl.s3_1(rsHttp["버전2투자성향답변내용31"]);
+						vl.s3_2(rsHttp["버전2투자성향답변내용32"]);
+						vl.s3_3(rsHttp["버전2투자성향답변내용33"]);
+						vl.s3_4(rsHttp["버전2투자성향답변내용34"]);
+						
+						vl.s4_1_1(strToBool(rsHttp["버전2투자성향답변내용41"].substr(0, 1)));
+						vl.s4_1_2(strToBool(rsHttp["버전2투자성향답변내용41"].substr(1, 1)));
+						vl.s4_1_3(strToBool(rsHttp["버전2투자성향답변내용41"].substr(2, 1)));
+						vl.s4_1_4(strToBool(rsHttp["버전2투자성향답변내용41"].substr(3, 1)));
+						vl.s4_1_5(strToBool(rsHttp["버전2투자성향답변내용41"].substr(4, 1)));
+						vl.s4_2(rsHttp["버전2투자성향답변내용42"]);
+						vl.checkNoExp1(strToBool(rsHttp["버전2투자성향답변내용43"]));
+						
+						vl.s5(rsHttp["버전2투자성향답변내용5"]);
+						vl.s6(rsHttp["버전2투자성향답변내용6"]);
+						vl.s7(rsHttp["버전2투자성향답변내용7"]);
+						vl.s8(rsHttp["버전2투자성향답변내용8"]);
+						vl.s9(rsHttp["버전2투자성향답변내용9"]);
+						vl.s10(rsHttp["버전2투자성향답변내용10"]);
+						vl.s11(rsHttp["이해불능투자자여부"]);
+						
+						vl.streNumt(Number(rsHttp["저장횟수"]));
+						vl.reRegiCauseCode('');
+					}
+				}, function(error) {
+				});
+			}
+			
+			//validation
+			function validation() {
+				//정보제공동의여부
+				if(util.isEmpty(vl.infoAgree())) {
+					lpopup.alert("정보제공 여부를 선택해 주셔야 합니다.").then(function() {
+						$("#investor_tbl2_id1").focus();
+					});
+					return false;
+				}
+				//투자권유희망여부
+				if(util.isEmpty(vl.persuasion1())) {
+					lpopup.alert("투자권유 희망 여부를 선택해 주셔야 합니다.").then(function() {
+						$("#investor_tbl_id1").focus();
+					});
+					return false;
+				}
+				//투자자정보 제공 동의의 경우
+				if(vl.infoAgree()=='Y'){
+					//필수 입력사항 체크
+					if(!vl.checkAge() && util.isEmpty(vl.birth())){
+						lpopup.alert("1번 [고객님의 연령] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_birth').focus();
+						});
+						return false;
+					}
+					if(!vl.checkAge() && 
+							(vl.birth() > util.todayDate()) ){
+						lpopup.alert("생년월일을 확인해 주세요.").then(function(){
+							$('#investor_birth').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s0())){
+						lpopup.alert("1번 [고객님의 연령] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio0_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s1())){
+						lpopup.alert("2번 [총 자산규모] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio1_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s2())){
+						lpopup.alert("3번 [연간 소득현황] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio2_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_1())){
+						lpopup.alert("4번 [재산 현황 - 보장성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_1_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_2())){
+						lpopup.alert("4번 [재산 현황 - 투자성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_2_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_3())){
+						lpopup.alert("4번 [재산 현황 - 대출성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_3_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_4())){
+						lpopup.alert("4번 [재산 현황 - 기타 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_4_1').focus();
+						});
+						return false;
+					}
+					//금융투자상품 투자경험이 있는 경우
+					if(!vl.checkNoExp1()){
+						if(!vl.s4_1_1() && !vl.s4_1_2() && !vl.s4_1_3() && !vl.s4_1_4() && !vl.s4_1_5()) {
+							lpopup.alert("5번 [금융투자상품 투자경험] 투자 경험이 있는 경우, 금융투자상품을 선택해 주세요.").then(function() {
+								$("#investor_check1_1").focus();
+							});
+							return false;
+						}
+						
+						if(util.isEmpty(vl.s4_2())){
+							lpopup.alert("5번 [금융투자상품 투자경험] 투자 경험이 있는 경우, 투자경험 기간을 선택해 주세요.").then(function(){
+								$('#investor_radio4_1').focus();
+							});
+							return false;
+						}
+					}
+					if(util.isEmpty(vl.s5())){
+						lpopup.alert("6번 [적정성원칙 대상 상품 투자경험] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio5_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s6())){
+						lpopup.alert("7번 [금융지식 수준 / 이해도] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio6_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s7())){
+						lpopup.alert("8번 [취득 및 처분 목적] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio7_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s8())){
+						lpopup.alert("9번 [투자 목적] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio8_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s9())){
+						lpopup.alert("10번 [투자예정기간] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio9_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s10())){
+						lpopup.alert("11번 [기대수익 및 손실감내도] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio10_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s11())){
+						lpopup.alert("12번 [취약 금융소비자 여부] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio11_1').focus();
+						});
+						return false;
+					}
+				}
+				
+				if(vl.agreeBool()){
+					if(!vl.checkConfirm()){
+						lpopup.alert('투자자정보확인 유효기간 설정에 동의해 주시기바랍니다!').then(function(){
+							$('#investorContAgree').focus();
+						});
+						return false;
+					}
+				} else {
+					if(!vl.checkConfirm()){
+						lpopup.alert('투자권유 미희망 및 투자자정보 미제공 확인에 동의해 주시기바랍니다!').then(function(){
+							$('#investorContAgree').focus();
+						});
+						return false;
+					}
+				}
+				
+				if(!vl.currentInvestorTendency() && vl.streNumt() >= 3){
+					lpopup.open('layerInvestorSumOver', '/siw/common/biz/common/lypop-investorSumOver.html', {});
+					return false;
+				}
+				
+				if(!vl.currentInvestorTendency() && vl.streNumt() > 0 && vl.reRegiCauseCode() == ""){
+					lpopup.alert('금일 투자성향을 변경한 이력이 있습니다. <br> 투자성향을 변경하려면 변경 이유를 선택해주시기 바랍니다!').then(function(){
+						$('#radio13_1').focus();
+					});
+					return false;
+				}
+				
+				return true;
+			}
+			//데이터 저장
+			function setData() {
+				//전송 데이터 param
+				var prm = {};
+				prm.investorType = vl.investorType();	//개인/법인구분
+				prm.currentInvestorTendency = vl.currentInvestorTendency(); // 현재투자자금성향
+				
+				prm.infoAgree = vl.infoAgree();
+				prm.persuasion1 = vl.persuasion1();
+				
+				prm.birth		= vl.birth();
+				prm.s0			= vl.s0();
+				prm.s1			= vl.s1();
+				prm.s2			= vl.s2();
+				prm.s3_1		= vl.s3_1();
+				prm.s3_2		= vl.s3_2();
+				prm.s3_3		= vl.s3_3();
+				prm.s3_4		= vl.s3_4();
+				
+				prm.s4_1_1		= boolToStr(vl.s4_1_1());
+				prm.s4_1_2		= boolToStr(vl.s4_1_2());
+				prm.s4_1_3		= boolToStr(vl.s4_1_3());
+				prm.s4_1_4		= boolToStr(vl.s4_1_4());
+				prm.s4_1_5		= boolToStr(vl.s4_1_5());
+				prm.s4_2		= vl.s4_2();
+				prm.checkNoExp1	= boolToStr(vl.checkNoExp1());
+				
+				prm.s5			= vl.s5();
+				prm.s6			= vl.s6();
+				prm.s7			= vl.s7();
+				prm.s8			= vl.s8();
+				prm.s9			= vl.s9();
+				prm.s10			= vl.s10();
+				prm.s11			= vl.s11();
+				prm.reRegiCauseCode = vl.reRegiCauseCode();
+				
+				if(!vl.agreeBool()){
+					prm.birth = '';
+					prm.s0 = '';
+					prm.s1 = '';
+					prm.s2 = '';
+					prm.s3 = ''; 
+					
+					prm.s4_1_1 = '';
+					prm.s4_1_2 = ''; 
+					prm.s4_1_3 = ''; 
+					prm.s4_1_4 = '';
+					prm.s4_1_5 = '';
+					prm.s4_2 = '';
+					prm.checkNoExp1 = 'Y';	//Y 선택 시 4-1 ~ 4-2 입력 불필요
+					
+					prm.s5 = '';
+					prm.s6 = '';
+					prm.s7 = '';
+					prm.s8 = '';
+					prm.s9 = '';
+					prm.s10 = '';
+					prm.s11 = 'N';
+				}
+                return prm;
+			}
+			//투자자정보 확인서 등록
+			function sendData(data) {
+				return http.post("/siw/banking-lending/customer-info/59730103/data.do", data);
+			}
+			//투자자정보 확인서 등록 (투자자 목적확인서 추가 등록)
+			function sendRiskJoinData(data) {
+				//임시주석 2021-03-16
+				return http.post("/siw/banking-lending/customer-info/59730104/data.do", data);
+			}
+			
+			//"Y" --> ture, "N" --> false
+			function strToBool(str) {
+				if(str=="Y") return true;
+				else return false;
+			}
+			//ture --> "Y",  false--> "N"
+			function boolToStr(bol, gubn) {
+				if(util.isNull(gubn)){
+					if(bol)return "Y";
+					else return "N";
+				}else{
+					if(bol)return "1";
+					else return "0";
+				}
+			}
+			
+			//화면 데이터 클리어
+			function clearData() {
+				vl.birth('');
+				vl.s0('');
+				vl.checkAge(false);
+				
+				vl.s1('');
+				vl.s2('');
+				vl.s3('');
+				
+				vl.s4_1_1(false);
+				vl.s4_1_2(false);
+				vl.s4_1_3(false);
+				vl.s4_1_4(false);
+				vl.s4_1_5(false);
+				vl.s4_2('');
+				vl.checkNoExp1(false);
+				
+				vl.s5('');
+				vl.s6('');
+				vl.s7('');
+				vl.s8('');
+				vl.s9('');
+				vl.s10('');
+				vl.s11('');
+				vl.reRegiCauseCode('');
+				vl.streNumt(0);
+				vl.checkConfirm(false);
+			}
+			
+			//만나이 계산
+			function calAge(birth){
+				var d = new Date();
+				var year = d.getFullYear() + '';
+				var month = d.getMonth() + 1 + '';
+				var day = d.getDate() + '';
+				
+				//월 2자리로 맞춤
+				if(month.length < 2) {
+				    month = '0'+month;
+				}
+				//일 2자리로 맞춤
+				if(day.length < 2) {
+				    day = '0'+day;
+				}
+				
+				var today = month+day;
+				
+				//고객생일년도
+				targetYear = birth.substr(0, 4);
+				//고객생일월일
+				targetbirth = birth.substring(4);
+				
+				var age = year - targetYear;
+				
+				//생일이 아직 안지났을때
+				if(today < targetbirth) {
+				    return age - 1;
+				}
+				return age;
+			}
+		},
+		template: $svc.get('http').html('/siw/common/biz/common/component-investorPersonal.html?ver=20251226')
+	}
+});
+
+//법인용 투자자 확인서
+si.component('investorCorporateInfo', function($svc) {
+	var log = $svc.logger('investorCorporateInfo');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	
+	var lc = {};
+	var vl = {};
+	var on = {};
+	
+	return {
+		viewModel: function(params) {
+			$svc.get('uiHelper').updateUI($('#component-investorCorporate').get(0));
+			log("params = ", params);
+			this.vl = params;
+			this.on = {};
+			lc.param = params.param;
+			vl = this.vl;
+			on = this.on;
+			
+			// 변수관리
+			// ==================================================
+			//투자자성향 표시 유형
+			//1. 투자성향 등급 & 파생투자성향등급
+			//2. 투자자정보 미제공
+			//3. 투자자정보 미작성
+			//4. 정보만료
+			//5. 전문투자자	2017-03-09 추가
+			vl.dispType = ko.observable('');
+			vl.dispTypeChange = ko.computed(function(arg) {
+				if(util.isEmpty(vl.limitDate())) {
+					//3:투자자정보 미작성
+					vl.dispType('3');
+				} else if(vl.limitDate() < util.formatDate(new Date(), 'yyyyMMdd')) {
+					//4:정보만료
+					vl.dispType('4');
+				}else if(vl.custGubun() == '2'){
+					//5:전문투자자	
+					vl.dispType('5');
+				} else if(vl.investInfoAgree() != 'Y' || vl.generalTp() == '') {
+					//2:투자자정보 미제공
+					vl.dispType('2');
+				} else {
+					//1:투자성향 등급 및 파생투자성향등급
+					vl.dispType('1');
+				}
+			}, this);
+			
+			vl.agreeBool 	= ko.observable(true);
+			
+			vl.infoAgree 	= ko.observable(vl.investInfoAgree());		//정보제공동의여부(Y.정보제공, N.정보미제공)
+			vl.persuasion1 	= ko.observable(vl.investPersuasion1());	//투자권유희망여부(Y.투자권유 희망, N.투자권유를 원하지 않음)
+			
+			vl.s1 			= ko.observable('');	//자산규모
+			vl.s2 			= ko.observable('');	//최근년도 당기순이익
+			vl.s3_1 		= ko.observable('');	//재산 현황 - 보장성 상품
+			vl.s3_2 		= ko.observable('');	//재산 현황 - 투자성 상품
+			vl.s3_3 		= ko.observable('');	//재산 현황 - 대출성 상품 
+			vl.s3_4 		= ko.observable('');	//재산 현황 - 기타 상품 
+			
+			//금융투자상품 투자경험
+			vl.s4_1_1 		= ko.observable(false);
+			vl.s4_1_2 		= ko.observable(false);
+			vl.s4_1_3 		= ko.observable(false);
+			vl.s4_1_4 		= ko.observable(false);
+			vl.s4_1_5 		= ko.observable(false);
+			vl.s4_2 		= ko.observable('');	//투자경험 기간
+			vl.checkNoExp1 	= ko.observable(false);	//투자경험 없음
+			
+			vl.s5 			= ko.observable('');	//적정성원칙 대상 상품 투자경험
+			vl.s6 			= ko.observable('');	//금융지식 수준 / 이해도
+			vl.s7 			= ko.observable('');	//취득 및 처분 목적
+			vl.s8 			= ko.observable('');	//투자 목적
+			vl.s9 			= ko.observable('');	//투자예정기간
+			vl.s10 			= ko.observable('');	//기대수익 및 손실감내도
+			//vl.s11 			= ko.observable('');	//취약 금융소비자 여부
+			vl.streNumt	= ko.observable(0);
+			vl.reRegiCauseCode	= ko.observable("");
+			vl.checkConfirm = ko.observable(false);	//동의여부
+			
+			//vl.textBlockTitle = ko.observable();	//투자자정보확인 유효기간 설정 동의, 투자권유 불원 및 투자자정보 미제공 확인
+			//vl.textBlockDesc = ko.observable();		//내용
+			
+			//금융투자상품 투자경험이 없는 경우
+			vl.changeCheckNoExp = ko.computed(function(arg){
+				if(vl.checkNoExp1()){
+					vl.s4_1_1(false);
+					vl.s4_1_2(false);
+					vl.s4_1_3(false);
+					vl.s4_1_4(false);
+					vl.s4_1_5(false);
+					vl.s4_2('');
+				}
+			});
+			
+			//투자자정보 제공여부 변경시 처리
+			vl.changeInfoAgree = ko.computed(function(arg){
+				if(vl.infoAgree() == 'Y') {
+					vl.agreeBool(true);
+				} else if(vl.infoAgree() == 'N') {
+					vl.agreeBool(false);
+					/*if(vl.persuasion1() == "Y") {
+						lpopup.alert('정보 미제공시 투자권유를 희망 할 수 없습니다!').then(function(){
+							vl.persuasion1('N');
+						});
+					} else {
+						vl.persuasion1('N');
+					}*/
+				}
+			});
+			
+			//결과 전달용
+			vl.getData = getData;
+			vl.validation = validation;
+			vl.setData = setData;
+			vl.sendData = sendData;
+			vl.sendRiskJoinData = sendRiskJoinData;
+			vl.clearData = clearData;
+			
+			// 이벤트 함수 관리
+			// ==================================================
+			
+			//투자성향 정보 조회
+			getData();
+			
+			//--------------------------------------------------
+	        // 투자자정보확인서(P)
+	        //--------------------------------------------------
+	        on.wpopupInvestInfo = function (a, event){
+				
+				event.preventDefault();
+
+				var params = {
+	            		custName : vl.custName(),			//사용자이름
+	            		generalTp : vl.generalTp(),			//투자성향등급
+	            		generalTpName : vl.generalTpName(),	//투자성향등급명
+	            		persuasion1 : vl.persuasion1(), 	//투자권유희망여부
+	            		infoAgree : vl.infoAgree(),			//정보제공동의여부
+	            		limitDate : vl.limitDate(),			//만기일자
+	            		lastRegiYmd : vl.lastRegiYmd(),		//투자성향최종등록일자
+	            		streNumt : vl.streNumt(),			//저장횟수
+	            		corporation : "Y"					//법인용 FLAG
+	            };
+	            
+	            var option = {height:1100, width: 1000};
+	            
+	            wpopup.open('/siw/common/popup/investInfoPopup/view-popup.do', 'investInfoPopup', params, option);
+	        }
+	     
+	        
+			// 지역함수
+			// ==================================================
+			//데이터 조회
+			function getData() {
+				log("vl.investorType() = " + vl.investorType());
+				var prm = {
+					investorType: vl.investorType()	//개인/법인구분
+				};
+				http.post("/siw/banking-lending/customer-info/59730102/data.do", prm).then(function(rsHttp) {
+					//console.dir(rsHttp);
+					
+					if(rsHttp.result) {
+						vl.infoAgree(rsHttp["정보제공동의여부"]);
+						vl.persuasion1(rsHttp["투자권유희망여부"]);
+						
+						vl.s1(rsHttp["버전2투자성향답변내용1"]);
+						vl.s2(rsHttp["버전2투자성향답변내용2"]);
+						vl.s3_1(rsHttp["버전2투자성향답변내용31"]);
+						vl.s3_2(rsHttp["버전2투자성향답변내용32"]);
+						vl.s3_3(rsHttp["버전2투자성향답변내용33"]);
+						vl.s3_4(rsHttp["버전2투자성향답변내용34"]);
+						
+						vl.s4_1_1(strToBool(rsHttp["버전2투자성향답변내용41"].substr(0, 1)));
+						vl.s4_1_2(strToBool(rsHttp["버전2투자성향답변내용41"].substr(1, 1)));
+						vl.s4_1_3(strToBool(rsHttp["버전2투자성향답변내용41"].substr(2, 1)));
+						vl.s4_1_4(strToBool(rsHttp["버전2투자성향답변내용41"].substr(3, 1)));
+						vl.s4_1_5(strToBool(rsHttp["버전2투자성향답변내용41"].substr(4, 1)));
+						vl.s4_2(rsHttp["버전2투자성향답변내용42"]);
+						vl.checkNoExp1(strToBool(rsHttp["버전2투자성향답변내용43"]));
+						
+						vl.s5(rsHttp["버전2투자성향답변내용5"]);
+						vl.s6(rsHttp["버전2투자성향답변내용6"]);
+						vl.s7(rsHttp["버전2투자성향답변내용7"]);
+						vl.s8(rsHttp["버전2투자성향답변내용8"]);
+						vl.s9(rsHttp["버전2투자성향답변내용9"]);
+						vl.s10(rsHttp["버전2투자성향답변내용10"]);
+						//vl.s11(rsHttp["이해불능투자자여부"]);
+						vl.streNumt(Number(rsHttp["저장횟수"]));
+						vl.reRegiCauseCode('');
+					}
+				}, function(error) {
+				});
+			}
+			
+			//validation
+			function validation() {
+				//정보제공동의여부
+				if(util.isEmpty(vl.infoAgree())) {
+					lpopup.alert("정보제공 여부를 선택해 주셔야 합니다.").then(function() {
+						$("#investor_tbl2_id1").focus();
+					});
+					return false;
+				}
+				//투자권유희망여부
+				if(util.isEmpty(vl.persuasion1())) {
+					lpopup.alert("투자권유 희망 여부를 선택해 주셔야 합니다.").then(function() {
+						$("#investor_tbl_id1").focus();
+					});
+					return false;
+				}
+				//투자자정보 제공 동의의 경우
+				if(vl.infoAgree()=='Y'){
+					//필수 입력사항 체크
+					if(util.isEmpty(vl.s1())){
+						lpopup.alert("1번 [자산규모] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio1_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s2())){
+						lpopup.alert("2번 [최근년도 당기순이익] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio2_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_1())){
+						lpopup.alert("3번 [재산 현황 - 보장성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_1_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_2())){
+						lpopup.alert("3번 [재산 현황 - 투자성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_2_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_3())){
+						lpopup.alert("3번 [재산 현황 - 대출성 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_3_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s3_4())){
+						lpopup.alert("3번 [재산 현황 - 기타 상품] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio3_4_1').focus();
+						});
+						return false;
+					}
+					//금융투자상품 투자경험이 있는 경우
+					if(!vl.checkNoExp1()){
+						if(!vl.s4_1_1() && !vl.s4_1_2() && !vl.s4_1_3() && !vl.s4_1_4() && !vl.s4_1_5()) {
+							lpopup.alert("4번 [금융투자상품 투자경험] 투자 경험이 있는 경우, 금융투자상품을 선택해 주세요.").then(function() {
+								$("#investor_check1_1").focus();
+							});
+							return false;
+						}
+						
+						if(util.isEmpty(vl.s4_2())){
+							lpopup.alert("4번 [금융투자상품 투자경험] 투자 경험이 있는 경우, 투자경험 기간을 선택해 주세요.").then(function(){
+								$('#investor_radio4_1').focus();
+							});
+							return false;
+						}
+					}
+					if(util.isEmpty(vl.s5())){
+						lpopup.alert("5번 [적정성원칙 대상 상품 투자경험] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio5_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s6())){
+						lpopup.alert("6번 [금융지식 수준 / 이해도] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio6_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s7())){
+						lpopup.alert("7번 [취득 및 처분 목적] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio7_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s8())){
+						lpopup.alert("8번 [투자 목적] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio8_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s9())){
+						lpopup.alert("9번 [투자예정기간] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio9_1').focus();
+						});
+						return false;
+					}
+					if(util.isEmpty(vl.s10())){
+						lpopup.alert("10번 [기대수익 및 손실감내도] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio10_1').focus();
+						});
+						return false;
+					}
+					/*if(util.isEmpty(vl.s11())){
+						lpopup.alert("11번 [취약 금융소비자 여부] 문항은 필수 항목으로 반드시 선택해주셔야 합니다.").then(function(){
+							$('#investor_radio11_1').focus();
+						});
+						return false;
+					}*/
+				}
+				
+				if(vl.agreeBool()){
+					if(!vl.checkConfirm()){
+						lpopup.alert('투자자정보확인 유효기간 설정에 동의해 주시기바랍니다!').then(function(){
+							$('#investorContAgree').focus();
+						});
+						return false;
+					}
+				} else {
+					if(!vl.checkConfirm()){
+						lpopup.alert('투자권유 불원 및 투자자정보 미제공 확인에 동의해 주시기바랍니다!').then(function(){
+							$('#investorContAgree').focus();
+						});
+						return false;
+					}
+				}
+				
+				if(!vl.currentInvestorTendency() && vl.streNumt() >= 3){
+					lpopup.open('layerInvestorSumOver', '/siw/common/biz/common/lypop-investorSumOver.html', {});
+					return false;
+				}
+				
+				if(!vl.currentInvestorTendency() && vl.streNumt() > 0 && vl.reRegiCauseCode() == ""){
+					lpopup.alert('금일 투자성향을 변경한 이력이 있습니다. <br> 투자성향을 변경하려면 변경 이유를 선택해주시기 바랍니다!').then(function(){
+						$('#radio13_1').focus();
+					});
+					return false;
+				}
+				
+				return true;
+			}
+			//데이터 저장
+			function setData() {
+				//전송 데이터 param
+				var prm = {};
+				prm.investorType = vl.investorType();	//개인/법인구분
+				prm.currentInvestorTendency = vl.currentInvestorTendency(); // 현재투자자금성향
+				
+				prm.infoAgree = vl.infoAgree();
+				prm.persuasion1 = vl.persuasion1();
+				
+				prm.s1			= vl.s1();
+				prm.s2			= vl.s2();
+				prm.s3_1		= vl.s3_1();
+				prm.s3_2		= vl.s3_2();
+				prm.s3_3		= vl.s3_3();
+				prm.s3_4		= vl.s3_4();
+				
+				prm.s4_1_1		= boolToStr(vl.s4_1_1());
+				prm.s4_1_2		= boolToStr(vl.s4_1_2());
+				prm.s4_1_3		= boolToStr(vl.s4_1_3());
+				prm.s4_1_4		= boolToStr(vl.s4_1_4());
+				prm.s4_1_5		= boolToStr(vl.s4_1_5());
+				prm.s4_2		= vl.s4_2();
+				prm.checkNoExp1	= boolToStr(vl.checkNoExp1());
+				
+				prm.s5			= vl.s5();
+				prm.s6			= vl.s6();
+				prm.s7			= vl.s7();
+				prm.s8			= vl.s8();
+				prm.s9			= vl.s9();
+				prm.s10			= vl.s10();
+				//prm.s11			= vl.s11();
+				prm.reRegiCauseCode = vl.reRegiCauseCode();
+				if(!vl.agreeBool()){
+					prm.s1 = '';
+					prm.s2 = '';
+					prm.s3 = ''; 
+					
+					prm.s4_1_1 = '';
+					prm.s4_1_2 = ''; 
+					prm.s4_1_3 = ''; 
+					prm.s4_1_4 = '';
+					prm.s4_1_5 = '';
+					prm.s4_2 = '';
+					prm.checkNoExp1 = 'Y';	//Y 선택 시 4-1 ~ 4-2 입력 불필요
+					
+					prm.s5 = '';
+					prm.s6 = '';
+					prm.s7 = '';
+					prm.s8 = '';
+					prm.s9 = '';
+					prm.s10 = '';
+					//prm.s11 = 'N';
+				}
+				return prm;
+			} 
+			//투자자정보 확인서 등록
+			function sendData(data) {
+				return http.post("/siw/banking-lending/customer-info/59730103/data.do", data);
+			}
+			//투자자정보 확인서 등록 (법인 프로세스)
+			function sendRiskJoinData(data) {
+				return http.post("/siw/banking-lending/customer-info/59730104/data.do", data);
+			}
+			
+			//"Y" --> ture, "N" --> false
+			function strToBool(str) {
+				if(str=="Y") return true;
+				else return false;
+			}
+			//ture --> "Y",  false--> "N"
+			function boolToStr(bol, gubn) {
+				if(util.isNull(gubn)){
+					if(bol)return "Y";
+					else return "N";
+				}else{
+					if(bol)return "1";
+					else return "0";
+				}
+			}
+			
+			//화면 데이터 클리어
+			function clearData() {
+				vl.s1('');
+				vl.s2('');
+				vl.s3('');
+				
+				vl.s4_1_1(false);
+				vl.s4_1_2(false);
+				vl.s4_1_3(false);
+				vl.s4_1_4(false);
+				vl.s4_1_5(false);
+				vl.s4_2('');
+				vl.checkNoExp1(false);
+				
+				vl.s5('');
+				vl.s6('');
+				vl.s7('');
+				vl.s8('');
+				vl.s9('');
+				vl.s10('');
+				//vl.s11('');
+				vl.reRegiCauseCode('');
+				vl.streNumt(0);
+				vl.checkConfirm(false);
+			}
+		},
+		template: $svc.get('http').html('/siw/common/biz/common/component-investorCorporate.html?ver=20251226')
+	}
+});
+
+})();

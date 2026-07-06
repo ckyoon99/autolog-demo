@@ -1,0 +1,137 @@
+/* ui-loading.css: 원본은 JS 로딩 후 표시 — 데모는 스크립트 없이 바로 표시 */
+.LAYOUTBOX {
+    display: block !important;
+}
+
+/* 메인 레이아웃 */
+.gnbArea .gnbList > li > a {
+    text-indent: 0 !important;
+    width: auto !important;
+    min-width: 90px;
+    height: auto !important;
+    padding: 24px 12px 23px !important;
+    background: none !important;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+}
+.gnbArea .gnbList > li > a:hover {
+    color: #1598dc;
+}
+.headTop .utilArea {
+    position: absolute;
+    top: 24px;
+    right: 0;
+}
+.headTop .utilArea a {
+    margin-left: 12px;
+    color: #666;
+    font-size: 12px;
+    text-decoration: none;
+}
+.footer .footArea {
+    width: 996px;
+    margin: 0 auto;
+    padding: 20px 0;
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+}
+.container {
+    width: 996px;
+    margin: 90px auto 0;
+}
+.container .contTop {
+    margin-top: 0;
+}
+.container.sub-page {
+    margin: 20px auto 40px;
+    text-align: left;
+    padding: 0 10px;
+}
+.page-title {
+    padding: 20px 0 8px;
+    font-size: 24px;
+    color: #152475;
+    border-bottom: 2px solid #1598dc;
+}
+.page-desc {
+    margin: 12px 0 24px;
+    color: #666;
+    font-size: 14px;
+}
+.asset-summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.summary-box {
+    flex: 1;
+    background: #f7f9fc;
+    border: 1px solid #e2e2e2;
+    padding: 18px;
+    text-align: center;
+}
+.summary-box.highlight {
+    background: #ebf3fc;
+    border-color: #1598dc;
+}
+.summary-box .label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
+.summary-box strong {
+    font-size: 18px;
+    color: #152475;
+}
+.asset-section {
+    margin-top: 10px;
+}
+.section-title {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 12px;
+}
+.asset-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.asset-table th,
+.asset-table td {
+    border: 1px solid #e2e2e2;
+    padding: 10px 12px;
+}
+.asset-table th {
+    background: #5d6677;
+    color: #fff;
+    font-weight: normal;
+}
+.asset-table td.num {
+    text-align: right;
+}
+.asset-table td.loading,
+.asset-table td.fail {
+    text-align: center;
+    color: #888;
+    padding: 24px;
+}
+.asset-table td.fail {
+    color: #c62828;
+}
+.asset-table .up { color: #d32f2f; }
+.asset-table .down { color: #1565c0; }
+.simple-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.simple-list li {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e2e2;
+    font-size: 14px;
+}

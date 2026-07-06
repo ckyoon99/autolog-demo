@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)https://www.shinhansec.com/siw/solution/app//views/library.html -->
+<html><head lang="en"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- 임시로 지움. -->
+    
+    <title>vestsign_loading</title>
+    
+    <script>
+        (function (){
+            try{
+                //console.log("page documnet.domain: " + document.domain);
+                parent.document.location;
+            }catch(e) {
+                if (document.domain.indexOf(".co.kr") != -1) {
+                    //co.kr
+                    var domainArr = document.domain.split(".");
+                    //console.log("arr:" + domainArr);
+                    document.domain = domainArr[domainArr.length - 3] + ".co.kr";
+                }
+                else if (document.domain.indexOf(".com") != -1) {
+                    //com
+                    var domainArr = document.domain.split(".");
+                    //console.log("arr:" + domainArr);
+                    document.domain = domainArr[domainArr.length - 2] + ".com";
+                }
+            }
+        })();
+    </script>
+    
+    <script type="text/javascript" src="./json3.min.js.다운로드"></script>
+    <script type="text/javascript" src="./iecompatibility.js.다운로드"></script>
+    
+    <script type="text/javascript" src="./moment.min.js.다운로드"></script>
+
+    <script type="text/javascript" src="./jsrose_crypto.js.다운로드"></script>
+    <script type="text/javascript" src="./jsrose.js.다운로드"></script>
+    <script type="text/javascript" src="./webToken.js.다운로드"></script>
+
+    <!-- CP949 -->
+    <script type="text/javascript" src="./cp949Table.js.다운로드"></script>
+
+    <script type="text/javascript" src="./vestsign.core.js.다운로드"></script>
+    <script type="text/javascript" src="./vestsign.util.js.다운로드"></script>
+    
+    <script type="text/javascript" src="./vestsign.error.js.다운로드"></script>
+    <script type="text/javascript" src="./vestsign.error(1).js.다운로드"></script>
+</head>
+<body>
+<input type="text" id="testBtn">
+    안녕하세요.
+
+
+
+<script>
+    parent.window.vest = vest;
+</script></body></html>

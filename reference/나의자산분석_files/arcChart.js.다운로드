@@ -1,0 +1,193 @@
+(function($){
+	$.fn.shArcChart = function( op ){
+		return this.each(function(i){
+			var $this = $(this);
+			var data = $this.data('shArcChart');
+			if( !data ){
+				$this.data('shArcChart', (data = new ShArcChart($.extend({'id':$this.attr('id')},op)) ) );
+			}else{
+				$this.data('shArcChart').destroy();
+				$this.data('shArcChart', (data = new ShArcChart($.extend({'id':$this.attr('id')},op)) ) );
+			}
+		});
+	}
+	$.fn.shArcChart.Constructor = ShArcChart;
+}(jQuery));
+function ShArcChart(op){
+	this.option = $.extend({
+		'id':$.noop(),
+		'data' : [],
+		'animate': false,
+		'width': 'Number',
+		'height' : 'Number'
+	},op);
+
+	var nArr = [];
+	var point = 0.3;
+	var module = this;
+	var colorBody = ["#5f82d2", "#314689" , "#1598dc","#6bebe2","#ffdd00","#ff9a9f","#607791","#b799ff","#777ad9","#b8ea08"];
+	var colorCircle = ["#305bb6","#09134a",  "#025bbe","#2dd9c8","#ffc000","#ff5d63","#243852","#835cff", "#383ab9","#85d700"]; //바깥->>안
+	var maxLineLen = 9;
+	for( var i=0; i<this.option.data.length ; i++ ){
+		var iidx = (maxLineLen-i)*0.1;
+		module.option.data[i].setValue = module.option.data[i].value;
+		module.option.data[i].value = module.option.data[i].value*0.01;
+		module.option.data[i].index = iidx - (point*(iidx-0.1));
+		module.option.data[i].colorBody = colorBody[i];
+		module.option.data[i].colorCircle = colorCircle[i];
+		nArr.push(module.option.data[i]);
+	}
+	var ie8alretElm = '<div class="noData"><p class="noResult">익스플로러 9버전 부터 지원합니다.</p></div>';
+	if( $('.lt-ie8').length > 0 ){
+		var ele = $("#"+module.option.id);
+		if( ele.find('.noData').length < 1 ) ele.append(ie8alretElm);
+	}else{
+		this.option.data = nArr;
+		if( !this.option.animate ){
+			this.start( true );
+		}else{
+			if( $("#"+this.option.id).offset().top < parseInt($(window).height()/2)+$(window).scrollTop() +200 ){
+				if( $("#"+this.option.id).find('svg').length < 1 ){
+					this.start();
+				}
+			}
+		}
+		//this.start();
+
+		$(window).off('scroll.sharcchart'+module.option.id).on('scroll.sharcchart'+module.option.id, function(){
+			if( module.option.animate ){
+				var $wtop = $(window).scrollTop();
+				var ele = $("#"+module.option.id);
+				if( ele.data('shArcChart') === undefined ) return false;
+				if( ele.offset().top < parseInt($(window).height()/2)+$wtop +200){
+					if( ele.find('svg').length < 1 ){
+						module.start();
+					}
+				}
+			}
+		});
+	}
+	
+}
+$.extend(ShArcChart.prototype,{
+	destroy: function(){
+		$("#"+this.option.id).find('svg').remove();
+		$("#"+this.option.id).removeData('shArcChart');
+	},
+	fields : function(t){
+		return  t.option.data;
+	},
+	makeChart: function(){
+		var module = this;
+		var width = 540;//module.option.width;
+		var height = 370;//module.option.height;
+		var radius = Math.min(width,height)/1.5;
+		var spacing = 0.04;
+		var elemtID = module.option.id;
+		var point = 0.03;
+
+		var arcBody =d3.svg.arc().startAngle(function(d){
+			return -180*Math.PI/180; //0
+		}).endAngle(function(d){
+			return -180*Math.PI/180 + d.value* 2* Math.PI; //d.value * 1.55 * Math.PI; //2 : 360 / 1 : 180
+		}).innerRadius(function(d){
+			return (d.index * radius);
+		}).outerRadius(function(d){
+			return (d.index + spacing) *radius;
+		}).cornerRadius(10);
+		module.arcBody = arcBody;
+
+		var svg = d3.select("#"+elemtID).append("svg").attr("width",width).attr("height",height).append("g").attr("transform","translate("+ width/2.6 + ","+ height/2 +")");
+		module.svg = svg;
+
+		var field = svg.selectAll('g').data(module.option.data).enter().append("g");
+		module.field = field;
+
+		field.append("path").attr('class','arc-body');
+
+		field.append("circle").attr("startOffset","50%").attr('cx',function(d){
+			return -3;
+		}).attr('cy',function(d){
+			return (((d.index + spacing) *radius))-5;
+		}).attr('r',function(d){
+			return 5.2;
+		}).style("fill", function(d){
+			return d.colorCircle;//color code
+		});
+
+		field.append('line').attr('x1',function(d){
+			return 2;
+		}).attr('y1',function(d){
+			return (((d.index + spacing) *radius))-4;
+		}).attr('x2',function(d){
+			return 175;
+		}).attr('y2',function(d){
+			return (((d.index + spacing) *radius))-4;
+		}).attr("stroke-width",0.9).attr('stroke', "black").attr('opacity', "0.4");;
+
+		field.append('text').attr('x',function(d){
+			return 225;
+		}).attr('y',function(d){
+			return ((d.index + spacing) *radius)+3;
+		}).attr("class","arc-text").text(function(d){
+			return (d.setValue)+"%";
+		}).attr("startOffset","100%").attr("text-anchor","end").style("fill","#333333");
+
+		field.append('text').attr('x',function(d){
+			return 233;
+		}).attr('y',function(d){
+			return ((d.index + spacing) *radius)+3;
+		}).attr("class","arc-textval").text(function(d){
+			return d.text;
+		}).style("fill","#666666");
+/*
+		var defs = field.append('svg:defs');
+		defs.append('svg:pattern')
+		.attr('id',function(d){
+			return "pattern"+d.index;
+		}).attr('patternUnits','userSpaceOnUse').attr('x', width/-2).attr('y', height/-2).attr('width', 10).attr('height',10)
+		.append('svg:image')
+		.attr('xlink:href', function(d){
+			return '/siw/common/images/common/bg_docu_slogan.gif?'+d.index;
+		}).attr('x', 0 ).attr('y', 0 ).attr('width', 10).attr('height',10);
+*/
+		//d3.select(self.frameElement).style("height",height+"px");
+	},
+	start: function( ani ){
+		var module = this;
+		if( !document.hidden ){
+			module.makeChart(); //////
+
+			module.field.each(function(d){
+				this._value = d.value;
+			}).data(module.option.data)
+			.each(function(d){
+				d.previousValue = !ani ? 0 : this._value;//this._value;
+			}).transition().ease("cubic").duration( !ani ? 900 : 0 ).each( fieldTransition );/*.each(function(){
+				var t = !ani ? 950 : 0 ;
+				setTimeout(function(){
+					module.field.select(".arc-body").style("fill", function(d){
+						return "url(#"+"pattern"+d.index+")";//color code //"url(#"pattern"+d.index)";//
+					});
+				}, t);
+			});*/
+
+		}
+		function fieldTransition(argument) {
+			var field = d3.select(this).transition();
+			field.select(".arc-body").attrTween("d", arcTween(module.arcBody)).style("fill", function(d){
+				return d.colorBody;//color code
+			});
+		}
+		function arcTween(arc) {
+			return function(d){
+			var i = d3.interpolateNumber(d.previousValue, d.value);
+			return function (t) {
+					d.value = i(t);
+					return arc(d);
+				}
+			};
+		}
+
+	}
+});

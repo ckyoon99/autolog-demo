@@ -1,0 +1,101 @@
+@charset "utf-8";
+/* 게시판/카드형 목록 (원본 board.css 대체) */
+
+.boardList {
+    margin-top: 20px;
+}
+
+.boardTypeCard {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.boardTypeCard.type03 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.boardTypeCard.type03 > li.box {
+    width: calc(50% - 10px);
+    min-height: 280px;
+    padding: 24px 28px 60px;
+    border: 1px solid #e2e2e4;
+    background: #fff;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.boardTypeCard .tit {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 18px;
+    line-height: 1.4;
+}
+
+.boardTypeCard .tit a {
+    color: #152475;
+    text-decoration: none;
+}
+
+.boardTypeCard .tit a:hover {
+    color: #1598dc;
+    text-decoration: underline;
+}
+
+.boardTypeCard .listType1 {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.boardTypeCard .listType1 li {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #666;
+}
+
+.boardTypeCard .listType1 .h {
+    display: inline-block;
+    min-width: 56px;
+    color: #333;
+    font-weight: 600;
+}
+
+.boardTypeCard .cont {
+    margin: 0 0 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #666;
+    max-height: 80px;
+    overflow: hidden;
+}
+
+.boardTypeCard .info {
+    font-size: 12px;
+    color: #999;
+}
+
+.boardTypeCard .info .stick {
+    margin: 0 6px;
+    color: #ccc;
+}
+
+.boardTypeCard .down {
+    position: absolute;
+    bottom: 20px;
+    right: 28px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #152475;
+    text-decoration: none;
+    border: 1px solid #152475;
+    border-radius: 2px;
+}
+
+.boardTypeCard .down:hover {
+    background: #152475;
+    color: #fff;
+}

@@ -1,0 +1,4 @@
+﻿@charset "utf-8";
+/* 데모: JS 로딩 스크립트 없이 바로 표시 */
+.LAYOUTBOX{display:block;}
+.ui-loading-m{display:block;position:fixed;top:50%;left:50%;margin:-75px 0 0 -180px;color:black;text-align:center;}

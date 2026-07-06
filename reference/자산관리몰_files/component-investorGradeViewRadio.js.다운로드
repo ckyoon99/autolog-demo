@@ -1,0 +1,297 @@
+/**
+ * 투자성향 알림 공통 Component
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2017.10.23 | H.YANG | 최초생성 |
+ */
+(function (){
+si.util.load('/siw/common/biz/',['common/lypop-investorGradeView.js']);
+si.util.load('/siw/common/biz/common','currentInvestorTendencyCommon.js');
+si.util.load('/siw/common/biz/common','lypop-goodsSearchAll.js');
+
+//호출방법
+//js:
+//	$vo.cigv = {
+//		callBack: function(searchType){  //알림창(layerInvestCradeViewSearch)에서 클릭된 버튼에 의해 실행될 callBack함수 정의 
+//		}
+//	};
+//
+//html : 
+//  <div data-bind="component:{name:'investorGradeViewRadio', params:cigv}"
+//
+si.component('investorGradeViewRadio', function($svc) {
+	var log = $svc.logger('investorGradeViewRadio');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var currentInvestorTendencyCommon = $svc.get('currentInvestorTendencyCommon');
+	
+	var vl = {};
+	var on = {};
+	var ready = null;
+	var callBack = null;
+	var setType = null;
+	var menu = '';
+	var goodsType = '';
+
+	return {
+		viewModel: function(params) {
+			$svc.get('uiHelper').updateUI($('#component-investorGradeViewRadio').get(0));
+			
+			this.vl = {};
+			this.on = {};
+			vl = this.vl;
+			on = this.on;
+			
+			this.cigv = params;
+			this.cigv.getData = getData;
+			
+			ready     = this.cigv.ready;
+			callBack  = this.cigv.callBack;	// 투자성향 팝업 콜백
+			setType   = this.cigv.setType;	// 라디오버튼 클릭 이벤트
+			menu 	  = this.cigv.menu.toLowerCase();		//진입메뉴
+			goodsType = this.cigv.goodsType; // 상품타입 (fund: 펀드, bond: 채권, els: ELS, rp: RP, 연금: pension)
+			
+			// 변수관리
+			// ==================================================
+			vl.investorGradeViewRadio = ko.observable(false);
+			vl.investorGradeViewType1 = ko.observable(false);
+			vl.investorGradeViewType2 = ko.observable(false);
+			vl.investorGradeViewType3 = ko.observable(false);
+			vl.investorGradeViewType4 = ko.observable(false);
+			vl.investorGradeViewType5 = ko.observable(false);
+			vl.investorGradeViewType6 = ko.observable(false);
+			vl.investorGradeViewType7 = ko.observable(false);
+			
+			vl.custInvtGradCodeNm = ko.observable('');
+			vl.custInvtGradSpan = ko.observable('');
+			vl.prodInvtGradSpan = ko.observable('');
+			vl.custInvtGradStatus = ko.observable('');
+			vl.searchType = ko.observable('2');
+			vl.menu = ko.observable(menu);
+			
+			init();
+			
+		},
+		template: $svc.get('http').html('/siw/common/biz/common/component-investorGradeViewRadio.html?ver=20251223')
+	}
+	
+	function init() {
+		ready && ready();
+	}
+	
+	function getData() {
+		//투자성향 조회
+		currentInvestorTendencyCommon.informInvestorInfoReRegistration({}).then(function(currentInvestorTendencyBody) {
+			if (currentInvestorTendencyBody.popupCompleted) {
+				http.post("/siw/common/investGradeView/data.do", {}, false).then(function(body) {
+					if(body.ErrType != '0') {
+						lpopup.alert(body.errorMsg);
+						return;
+					}
+					
+					var custGrd = '';
+					var prodGrd ='';
+					var layerViewType = '';
+					var isProInvestor = false;
+					var isInvestorInfo = false;
+					var isCurrentInvestorInfo = false;
+					
+					if( util.isEmpty(body['만기일자']) ){  //투자자정보 미작성
+						isInvestorInfo = true;
+						vl.investorGradeViewType2(true);
+						layerViewType = '4';
+						vl.custInvtGradStatus('미작성');
+					} else if( body['만기일자'] < util.formatDate(new Date(), 'yyyyMMdd') ){  //투자자정보 만료
+						isInvestorInfo = true;
+						vl.investorGradeViewType3(true);
+						layerViewType = '3';
+					}else if( body['투자자구분코드']=='2' ){  //전문투자자
+						isProInvestor = true;
+						vl.investorGradeViewType4(true);
+					}else if( body['정보제공동의여부']!='Y' || body['고객투자등급코드']=='' ){  //투자자정보 미제공
+						isInvestorInfo = true;
+						vl.investorGradeViewType2(true);
+						layerViewType = '2';
+						vl.custInvtGradStatus('미제공');
+					} else {
+						isCurrentInvestorInfo = true;
+						custGrd = body['고객투자등급코드'];
+						var setColor = '1';
+						
+						if( body['고객투자등급코드']=='1' ){
+							prodGrd = '매우높은위험';
+							//setColor = menu=='fund'? '1':'55';
+							setColor = '1';
+						}else if( body['고객투자등급코드']=='2' ){
+							prodGrd = '높은위험, 다소높은위험';
+							//setColor = menu=='fund'? '3':'44';
+							setColor = '2';
+						}else if( body['고객투자등급코드']=='3' ){
+							prodGrd = '보통위험';
+							//setColor = menu=='fund'? '4':'33';
+							setColor = '4';
+						}else if( body['고객투자등급코드']=='4' ){
+							prodGrd = '낮은위험';
+							//setColor = menu=='fund'? '5':'22';
+							setColor = '5';
+						}else if( body['고객투자등급코드']=='5' ){
+							prodGrd = '매우낮은위험';
+							//setColor = menu=='fund'? '6':'11';
+							setColor = '6';
+						}
+						
+						vl.custInvtGradCodeNm(body['고객투자등급코드명']);
+						
+						var html1 = '<em class="txtInvest type0'+custGrd+'">'+body['고객투자등급코드명']+'</em>';
+						var html2 = '<span class="icoProd icoDanger type'+setColor+'">'+prodGrd+'</span>';
+						
+						if (prodGrd.includes(',')){
+							var prodGrdArr = prodGrd.split(',');
+							html2 = '<span class="icoProd icoDanger type'+setColor+'">'+prodGrdArr[0]+'</span><span class="icoProd icoDanger type'+(parseInt(setColor)+1)+'">'+prodGrdArr[1]+'</span>';
+						}
+						
+						vl.custInvtGradSpan(html1);
+						vl.prodInvtGradSpan(html2);
+						
+						vl.investorGradeViewType1(true);
+					}
+					
+					vl.investorGradeViewRadio(true);
+					
+					if (isProInvestor) {
+						callBack && callBack({
+							searchType: '2',
+							custGrd: custGrd,
+							prodGrd: prodGrd,
+							drvGrd: body['파생투자등급코드'],
+						});
+						
+						return;
+					}
+					
+					if (isInvestorInfo) {
+						lpopup.open('layerInvestCradeViewSearch', '/siw/common/biz/common/lypop-investorGradeView.html', {
+							 viewType: layerViewType
+							,custGrdNm: body['고객투자등급코드명']
+							,custGrd: custGrd
+							,prodGrd: prodGrd
+							,setColor: setColor
+						}).then(function(result) {
+							if (result.searchType == '3') {
+								callBack && callBack({
+									searchType: '3',
+									custGrd: custGrd,
+									prodGrd: prodGrd,
+									drvGrd: body['파생투자등급코드'],
+								});
+								
+								return;
+							} else {
+								callBack && callBack({
+									searchType: '2',
+									custGrd: custGrd,
+									prodGrd: prodGrd,
+									drvGrd: body['파생투자등급코드'],
+								});
+								
+								return;
+							}
+							
+						});
+					} else if (isCurrentInvestorInfo) {
+						currentInvestorTendencyCommon.confirmCurrentInvestorTendency({
+							goodsType:goodsType
+						}).then(function(currentInvestorTendencyBody) {
+							http.post("/siw/common/investGradeView/data.do", {}, false).then(function(body) {
+								if(body.ErrType != '0') {
+									lpopup.alert(body.errorMsg);
+									return;
+								}
+								
+								custGrd = body['고객투자등급코드'];
+								var setColor = '1';
+								
+								if( body['고객투자등급코드']=='1' ){
+									prodGrd = '매우높은위험';
+									//setColor = menu=='fund'? '1':'55';
+									setColor = '1';
+								}else if( body['고객투자등급코드']=='2' ){
+									prodGrd = '높은위험, 다소높은위험';
+									//setColor = menu=='fund'? '3':'44';
+									setColor = '2';
+								}else if( body['고객투자등급코드']=='3' ){
+									prodGrd = '보통위험';
+									//setColor = menu=='fund'? '4':'33';
+									setColor = '4';
+								}else if( body['고객투자등급코드']=='4' ){
+									prodGrd = '낮은위험';
+									//setColor = menu=='fund'? '5':'22';
+									setColor = '5';
+								}else if( body['고객투자등급코드']=='5' ){
+									prodGrd = '매우낮은위험';
+									//setColor = menu=='fund'? '6':'11';
+									setColor = '6';
+								}
+								
+								vl.custInvtGradCodeNm(body['고객투자등급코드명']);
+								
+								var html1 = '<em class="txtInvest type0'+custGrd+'">'+body['고객투자등급코드명']+'</em>';
+								var html2 = '<span class="icoProd icoDanger type'+setColor+'">'+prodGrd+'</span>';
+								
+								if (prodGrd.includes(',')){
+									var prodGrdArr = prodGrd.split(',');
+									html2 = '<span class="icoProd icoDanger type'+setColor+'">'+prodGrdArr[0]+'</span><span class="icoProd icoDanger type'+(parseInt(setColor)+1)+'">'+prodGrdArr[1]+'</span>';
+								}
+								
+								vl.custInvtGradSpan(html1);
+								vl.prodInvtGradSpan(html2);
+								
+								vl.investorGradeViewType2(false);
+								vl.investorGradeViewType3(false);
+								vl.investorGradeViewType1(true);
+								vl.searchType('1');
+								
+								callBack && callBack({
+									searchType: '1',
+									custGrd: custGrd,
+									prodGrd: prodGrd,
+									drvGrd: body['파생투자등급코드'],
+								});
+							});
+						});
+					}
+				
+					// 이벤트 함수 관리
+					// ==================================================
+					//성향에 맞는 펀드 확인하기
+					on.search = function() {
+						vl.searchType('1');
+						setType({
+							custGrd : custGrd,
+							drvGrd : body['파생투자등급코드'],
+							searchType: '1'
+						});
+					};
+					//모든 펀드 검색하기
+					on.searchAll = function() {
+						lpopup.open('layerGoodsSearchAll', '/siw/common/biz/common/lypop-goodsSearchAll.html?ver=20251230', {menu: menu});
+						vl.searchType('2');
+						setType({
+							searchType: '2'
+						});
+					};
+				
+				}, function(error) {
+					log("http reject !!!");
+					//초기데이터 조회 실패시 에러 처리
+					page.error();
+				});
+			}
+		});
+	}
+});
+
+})();
+

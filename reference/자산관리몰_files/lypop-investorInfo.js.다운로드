@@ -1,0 +1,153 @@
+/**
+ * 투자자 정보 확인서 - 팝업
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.11 | 박호원 | 최초생성 |
+ */
+(function (){
+
+//component load
+si.util.load('/siw/common/biz/common','component-investorInfo.js');
+si.util.load('/siw/common/biz/common','lypop-investorRiskJoin.js');
+
+//서명 서비스
+si.util.load('/siw/common/biz/', 'sign.js');
+	
+si.controller('layerInvestorInfo', function($vo, $svc){
+	var log = $svc.logger('layerInvestorInfo');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+		
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+	
+	lc.param = lpopup.getParam($vo) || {};
+	log("layer param = ", lc.param);
+	
+	// 변수관리
+	// ==================================================
+	//컴포넌트 바인딩 param
+	$vo.vl.params = {};
+	
+	$vo.vl.titleText = ko.observable('');
+	
+	//확인버튼
+	$vo.vl.btnOkFocus = ko.observable(false);
+	// 이벤트 함수 관리
+	// ==================================================
+	//닫기
+	$vo.on.close = function() {
+		lpopup.close($vo);
+	};
+	//확인
+	$vo.on.ok = function() {
+		log("확인!!!!");
+		if(!$vo.vl.params.validation()) {
+			return false;
+		}
+		var prm = $vo.vl.params.setData();
+		//전자서명 skip(로그인 알림, ID등록일 경우 전자서명 없음)
+		if(lc.param.signSkipYn == 'Y') {
+			prm.signSkipYn = 'Y';
+			$vo.vl.params.sendData(prm).then(function(body) {
+				log("body : ", body);
+				if(body.result) {
+					if(body.riskJoin == 'Y') {
+						log("투자자 목적확인서 작성이 필요");
+						
+						body['일반투자성향명'] = $vo.vl.params.generalTpName();
+						body['일반투자성향등급'] = $vo.vl.params.generalTp();
+						body['파생투자성향명'] = $vo.vl.params.derivativeTpName();
+						body['파생투자성향등급'] = $vo.vl.params.derivativeTp();
+						
+						//호출타입을 지정 (투자자정보 수정시 부적합 발생)
+						body['callType'] = 'info';
+						lpopup.open('layerInvestorRiskJoin', '/siw/common/biz/common/lypop-investorRiskJoin.html?ver=20251230', body).then(function(data) {
+							log("data : ", data);
+							if(data && data.result) {
+								$vo.vl.params.sendRiskJoinData(prm).then(function(rs) {
+									lpopup.close($vo, {
+										result: true
+									});
+								});
+							}
+						});
+					} else {
+						log("투자자 확인서 등록 완료");
+						lpopup.close($vo, {
+							result: true
+						});
+					}
+				}
+			}, function() {
+				$vo.vl.btnOkFocus(true);
+			});
+		} else {
+			$svc.get('$sign').gmsCertNeSign(prm).then(function(signData) {
+				$vo.vl.params.sendData(signData).then(function(body) {
+					log("body : ", body);
+					if(body.result) {
+						if(body.riskJoin == 'Y') {
+							log("투자자 목적확인서 작성이 필요");
+							
+							body['일반투자성향명'] 	= $vo.vl.params.generalTpName();
+							body['일반투자성향등급']	= $vo.vl.params.generalTp();
+							body['파생투자성향명']	= $vo.vl.params.derivativeTpName();
+							body['파생투자성향등급']	= $vo.vl.params.derivativeTp();
+							
+							// 현투 관계 없이 언제나 미표기 하는 거로 수정
+							body['등급표기여부']	= 'N';		// 적정(적합)성 진단 결과 등급 미표기
+							body['문항별응답결과숨김처리'] = true;	// 문항 미표기
+							
+							//호출타입을 지정 (투자자정보 수정시 부적합 발생)
+							body['callType'] = 'info';
+							lpopup.open('layerInvestorRiskJoin', '/siw/common/biz/common/lypop-investorRiskJoin.html?ver=20251230', body).then(function(data) {
+								log("data : ", data);
+								if(data && data.result) {
+									$vo.vl.params.sendRiskJoinData(signData).then(function(rs) {
+										lpopup.close($vo, {
+											result: true
+										});
+									});
+								}
+							});
+						} else {
+							log("투자자 확인서 등록 완료");
+							lpopup.close($vo, {
+								result: true
+							});
+						}
+					}
+				});
+			});
+		}
+	};
+	
+
+	// 지역함수
+	// ==================================================	
+	//개인/법인 구분
+	function init() {
+		// 현재투자자금성향(현투)만 활성화 시키기 위해 세팅
+		if (lc.param.iscurrentInvestorTendency) {
+			$vo.vl.params.iscurrentInvestorTendency = true;
+		}
+		
+		http.post("/siw/banking-lending/customer-info/59730101/data.do", {}, false).then(function(body) {
+			if (body && body.result) {
+				if (body['개인법인구분'] == '1') {
+					$vo.vl.titleText('[일반금융소비자] 투자자정보 확인서 (개인용)');
+				} else {
+					$vo.vl.titleText('[일반금융소비자] 투자자정보 확인서 (법인용)');
+				}
+			}
+		}, function(error) {
+		});
+	}
+	
+	init();
+});
+
+})();

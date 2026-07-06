@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0027)https://www.shinhansec.com/ -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>신한투자증권</title>
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="author" content="신한투자증권">
+<meta name="facebook-domain-verification" content="mjihunezj6c3gi5sp08pnknhpalc7h">
+<meta name="naver-site-verification" content="54a53d59df005221247f69c49a627f3ec9221b1b">
+<script>
+var deviceWidth = window.screen.width
+var dname = document.domain;
+
+if(deviceWidth <= 640 && dname.indexOf('www.shinhanetn.com') == -1){
+    window.location.href='https://open.shinhansec.com/phone/index/0001.jsp';
+}else{
+
+	if( dname.indexOf('www.shinhanpension.co.kr')!= -1 ){
+	                    document.location = 'https://www.shinhansec.com/siw/rks/main/view.do';
+	}
+	else if( dname.indexOf('m.shinhaninvest.com')!= -1  || dname.indexOf('m.shinhansec.com')!= -1 ){
+	                    document.location.href = 'https://open.shinhansec.com/phone/index/0001.jsp';
+	}
+	else if( dname.indexOf('m.slite.co.kr')!= -1 ){
+	                    document.location.href = 'http://m.slite.co.kr/m/slite/';
+	}
+	else if( dname.indexOf('slite.co.kr')!= -1 ){
+	                    document.location.href = 'http://www.slite.co.kr/main/index.html';
+	}
+	else if( dname.indexOf('www.slite.co.kr')!= -1 ){
+	                    document.location.href = 'http://www.slite.co.kr/main/index.html';
+	}
+	else if( dname.indexOf('www.shinhanpension.com')!= -1 ){
+	                    document.location = 'http://www.shinhanpension.co.kr/rks/index.jsp';
+	}
+	else if( dname.indexOf('ir.shinhaninvest.com')!= -1 || dname.indexOf('ir.shinhansec.com')!= -1 ){
+	                    document.location = 'https://open.shinhansec.com/new_ir/main.jsp';
+	}
+	else if( dname.indexOf('open.shinhaninvest.com')!= -1 ||  dname.indexOf('open.shinhansec.com')!= -1 ||  dname.indexOf('open2.shinhaninvest.com')!= -1){
+	                    document.location = 'https://open.shinhansec.com/open/index.jsp';
+	}
+	else if( dname.indexOf('www.shinhanswap.com')!= -1 ){
+	                    document.location = 'https://www.shinhansec.com/siw/swap-service/client/notice/view.do';
+	}
+	else if( dname.indexOf('www.shinhanetn.com')!= -1 ){
+	                    document.location = 'https://open.shinhansec.com/etn/main/ETN_PW_FO_0010.jsp';
+	}
+	else if( dname.indexOf('goodi.com')!= -1 ){
+	                    document.location = 'https://www.shinhansec.com/index.html';
+	} else {
+		//	if (location.protocol == 'http:') {
+		//		if( dname.indexOf('shinhaninvest.com')!= -1 ){
+		//			document.location = 'https://www.shinhaninvest.com/index.html';
+		//		} else if( dname.indexOf('shinhansec.com')!= -1 ){
+		//			document.location = 'https://www.shinhansec.com/index.html';
+		//		} else {
+		//			document.location = 'https://www.shinhansec.com/index.html';
+		//		}
+		//	}
+		}
+	}
+</script>
+<script type="application/ld+json">
+{
+	 "@context": "http://schema.org",
+	 "@type": "Website",
+	 "name": "신한투자증권",
+	 "url": "https://www.shinhansec.com",
+	 "sameAs": [
+			"https://www.youtube.com/shinhaninvest",
+	 		"https://www.facebook.com/shinhanofficial",
+			"https://post.naver.com/shinhanblog",
+			"https://apps.apple.com/kr/app/id1168512940",
+			"https://play.google.com/store/apps/details?id=com.shinhaninvest.nsmts&hl=ko",
+		]
+}
+</script>
+<script>
+const staticUri = '/siw/etc/login/view.do';
+
+//url 체크
+var urlCheck = function(_url) {
+    const regex = /\/?((\/[^\s\/]+)*)?\/(view|data|contents)(\-popup)?\.do(\?([^#\s]*))*/gi;
+    return regex.test(_url);
+}
+
+//XSS Filter 체크
+var XSScheck = function(str) {
+    str = str.replace(/\<|\>|\"|\'|\;|\(|\)|cookie|alert\(|onmouse/g,"");
+    return str;
+};
+
+document.addEventListener('DOMContentLoaded', function (){
+    var responseUri = '';
+    var baseUri = '/siw/main/front/view.do';
+    
+    if(typeof(Storage) !== "undefined") {   //localStorage 방식
+        if(localStorage.uri) {
+            responseUri = localStorage.getItem("uri");
+            responseUri =  ((responseUri == null || responseUri == '') ? baseUri : atob(responseUri));
+            localStorage.removeItem("uri");
+        } else {
+            responseUri = baseUri;
+        }
+    } else {    //get 방식
+        var subUri = location.search;
+        responseUri =  ((subUri == null || subUri == '' || subUri == '?' )? baseUri : atob(subUri.slice(subUri.indexOf('?')+1, subUri.length)));
+    }
+    
+    document.getElementById("mainFrame").src=(urlCheck(responseUri))?XSScheck(responseUri) : baseUri;
+});
+</script>
+</head>
+
+
+<frameset name="topFrame" rows="*,0" frameborder="no" border="0" framespacing="0">
+<frame name="mainFrame" id="mainFrame" src="./자산관리몰_files/view.html" noresize="" scrolling="yes" frameborder="no" marginwidth="0" marginheight="0" title="신한투자증권">
+<frame name="socketFrame" src="./자산관리몰_files/chat.html" noresize="" marginwidth="0" marginheight="0" frameborder="no" scrolling="no" framespacing="0" title="신한투자증권">
+</frameset>
+
+</html>

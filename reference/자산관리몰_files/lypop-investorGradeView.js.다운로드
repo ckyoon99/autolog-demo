@@ -1,0 +1,86 @@
+/**
+ * 투자자 정보 알림 - 팝업
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2017.10.23 | H.YANG | 최초생성 |
+ */
+(function (){
+//파라미터
+//viewType: 1.투자성향제공, 2.투자성향미제공
+//custGrdNm: (투자성향제공의 경우) 고객투자등급코드명
+//CustGrd: (투자성향제공의 경우) 고객투자등급코드
+//prodGrd: (투자성향제공의 경우) 적합투자등급코드명
+si.controller('layerInvestCradeViewSearch', function($vo, $svc){
+	var log = $svc.logger('layerInvestCradeViewSearch');
+	var lpopup = $svc.get('lpopup');
+		
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+	
+	lc.param = lpopup.getParam($vo) || {};
+	log("layer param = ", lc.param);
+	
+	// 변수관리
+	// ==================================================
+	$vo.vl.params = {};
+	$vo.vl.InvtGradeViewType1 = ko.observable(lc.param.viewType=='1'? true:false);
+	$vo.vl.InvtGradeViewType2 = ko.observable(lc.param.viewType=='2'? true:false);
+	$vo.vl.InvtGradeViewType3 = ko.observable(lc.param.viewType=='3'? true:false);
+	$vo.vl.InvtGradeViewType4 = ko.observable(lc.param.viewType=='4'? true:false);
+	$vo.vl.InvtGradeViewBtn1  = ko.observable(lc.param.viewType=='1'? true:false);
+	$vo.vl.InvtGradeViewBtn2  = ko.observable(lc.param.viewType!='1'? true:false);
+	
+	//$vo.vl.custInvtGradCode = ko.observable(lc.param.custGrd);
+	//$vo.vl.prodInvtGradCodeNm = ko.observable(lc.param.prodGrd);
+	//$vo.vl.custInvtGradCodeNm = ko.observable(lc.param.custGrdNm+'('+lc.param.custGrd+')등급');
+	
+	var html1 = '<em class="txtInvest type0'+lc.param.custGrd+'">'+lc.param.custGrdNm+'</em>';
+	var html2 = '<span class="icoProd icoDanger type'+lc.param.setColor+'">'+lc.param.prodGrd+'</span>';
+	
+	if (lc.param.prodGrd.includes(',')){
+		var prodGrdArr = lc.param.prodGrd.split(',');
+		html2 = '<span class="icoProd icoDanger type'+lc.param.setColor+'">'+prodGrdArr[0]+'</span><span class="icoProd icoDanger type'+(parseInt(lc.param.setColor)+1)+'">'+prodGrdArr[1]+'</span>';
+	}
+	
+	if(lc.param.custGrd == '1'){
+		html2 = '모든 ';
+	}
+	
+	$vo.vl.custInvtGradSpan = ko.observable(html1);
+	$vo.vl.prodInvtGradSpan = ko.observable(html2);
+	// 이벤트 함수 관리
+	// ==================================================
+	//닫기
+	$vo.on.close = function() {
+		lpopup.close($vo, {
+			searchType: '0'
+		});
+	};
+	//성향에 맞는 펀드 확인하기
+	$vo.on.search = function() {
+		//레이어 창 닫기
+		lpopup.close($vo, {
+			searchType: '1'
+		});
+	};
+	//모든 펀드 검색하기
+	$vo.on.searchAll = function() {
+		//레이어 창 닫기
+		lpopup.close($vo, {
+			searchType: '2'
+		});
+	};
+	//투자성향 등록하기
+	$vo.on.investorGradeReg = function() {
+		//레이어 창 닫기
+		lpopup.close($vo, {
+			searchType: '3'
+		});
+	};
+});
+
+
+
+})();

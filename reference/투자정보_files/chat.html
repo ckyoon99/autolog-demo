@@ -1,0 +1,116 @@
+
+<!-- saved from url=(0041)https://www.shinhansec.com/util/chat.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Apache Tomcat WebSocket Examples: Chat</title>
+        <script type="application/javascript">
+        document.domain="shinhansec.com";
+        var Chat = {};
+        
+        Chat.socket = null;
+
+        Chat.connect = (function(host) {
+        	
+            if ('WebSocket' in window) {
+                Chat.socket = new WebSocket(host);
+            } else if ('MozWebSocket' in window) {
+                Chat.socket = new MozWebSocket(host);
+            } else {
+                Console.log('Error: WebSocket is not supported by this browser.');
+                return;
+            }
+
+            Chat.socket.onopen = function () {
+                Console.log('Info: WebSocket connection opened.');
+                
+            };
+
+            Chat.socket.onclose = function () {
+                document.getElementById('chat').onkeydown = null;
+                Console.log('Info: WebSocket closed.');
+            };
+
+            Chat.socket.onmessage = function (message) {
+                Console.log(message.data);
+                alert(message.data);
+            };
+        });
+
+        Chat.initialize = function() {
+            if (window.location.protocol == 'http:') {
+                Chat.connect('ws://' + window.location.host + '/websocket/session');
+            	//Chat.connect('ws://www.shinhaninvest.com/websocket/chat');
+            } else {
+                Chat.connect('wss://' + window.location.host + '/websocket/session');
+            	//Chat.connect('wss://www.shinhaninvest.com/websocket/chat');
+            }
+        };
+
+        Chat.sendMessage = (function(message) {
+        	message = getCookie('UID')+"|" +message;
+             if (message != '') {
+                 Chat.socket.send(message);
+                 
+             }
+        });
+        
+        Chat.sendAlive = (function(){
+        	Chat.socket.send("live");
+        });
+    </script>
+</head>
+<body marginwidth="0" marginheight="0">
+  <div id="console-container">
+        <div id="console">
+    <p style="overflow-wrap: break-word;">Info: WebSocket connection opened.</p></div>
+
+<script>
+var Console = {};
+
+Console.log = (function(message) {
+    var console = document.getElementById('console');
+    var p = document.createElement('p');
+    p.style.wordWrap = 'break-word';
+    p.innerHTML = message;
+    console.appendChild(p);
+    while (console.childNodes.length > 25) {
+        console.removeChild(console.firstChild);
+    }
+    console.scrollTop = console.scrollHeight;
+});
+
+
+
+var initFunction = function(){
+	Chat.initialize();	
+}
+
+var getCookie = function(key){
+	var nameOfCookie = key + "=";
+    var x = 0;
+    while ( x <= document.cookie.length ){
+        var y = (x+nameOfCookie.length);
+        if ( document.cookie.substring( x, y ) == nameOfCookie ) {
+            if ( (endOfCookie=document.cookie.indexOf( ";", y )) == -1 )
+                endOfCookie = document.cookie.length;
+            return unescape( document.cookie.substring( y, endOfCookie ) );
+        }
+        x = document.cookie.indexOf( " ", x ) + 1;
+        if ( x == 0 )
+            break;
+    }
+    return "";
+};
+
+var callFunction = function(message){
+    Chat.sendMessage(message);
+    
+    var interval = setInterval(function(){
+    	Chat.sendAlive();
+    },300000);
+    
+}
+</script>
+</div></body></html>

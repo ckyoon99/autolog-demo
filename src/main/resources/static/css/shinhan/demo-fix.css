@@ -1,0 +1,224 @@
+@charset "utf-8";
+/* 데모용: 스프라이트/이미지 없이 레이아웃·텍스트 표시 */
+
+/* 폰트 — 외부 woff 요청 차단, 시스템 폰트 사용 */
+@font-face {
+    font-family: "nanumB";
+    src: local("Malgun Gothic"), local("맑은 고딕"), local("Dotum");
+}
+@font-face {
+    font-family: "원신한 bold";
+    src: local("Malgun Gothic"), local("맑은 고딕");
+    font-weight: bold;
+}
+@font-face {
+    font-family: "원신한 medium";
+    src: local("Malgun Gothic"), local("맑은 고딕");
+    font-weight: 500;
+}
+@font-face {
+    font-family: "원신한 light";
+    src: local("Malgun Gothic"), local("맑은 고딕");
+    font-weight: 300;
+}
+
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕', Dotum, sans-serif;
+}
+
+/* 헤더·GNB — 스프라이트 대신 텍스트 표시 */
+.header {
+    height: auto;
+    min-height: 110px;
+    background: #fff !important;
+    border-bottom: 2px solid #152475;
+}
+
+.headTop .logo {
+    text-indent: 0;
+    width: auto;
+    height: auto;
+}
+
+.headTop .logo a {
+    overflow: visible;
+    width: auto;
+    height: auto;
+    background: none !important;
+    text-indent: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #152475;
+    line-height: 33px;
+}
+
+.myassetWrap .headTop .logo a,
+.wealthWrap .headTop .logo a,
+.wealthWrap .headTop .topUtil li,
+.wealthWrap .headTop .topUtil li a {
+    color: #152475 !important;
+}
+
+.headTop .topUtil li:before,
+.headTop .topUtil li.cert:after {
+    background: #ccc !important;
+}
+
+.gnbArea {
+    height: auto;
+    min-height: 48px;
+    background: #f0f2f5 !important;
+    padding: 0 8px;
+}
+
+.gnbArea .gnbList {
+    padding-left: 0;
+}
+
+.gnbArea .gnbList > li > a {
+    overflow: visible;
+    text-indent: 0;
+    width: auto !important;
+    height: auto;
+    padding: 14px 10px;
+    background: none !important;
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.gnbArea .gnbList > li.gnbON > a,
+.gnbArea .gnbList > li > a:hover {
+    color: #1598dc;
+    font-weight: 600;
+}
+
+.gnbArea .gnbList > li > a:hover:after,
+.gnbArea .gnbList > li.gnbON > a:after {
+    background: #1598dc;
+}
+
+.container {
+    margin-top: 0;
+}
+
+/* 탭 하단 점선 */
+.tabType {
+    background: none;
+    border-bottom: 2px solid #152475;
+}
+
+/* 조회 버튼 아이콘 */
+.btnInq:before {
+    display: none;
+}
+
+/* 페이지별 wrapper */
+.myassetWrap {
+    background: linear-gradient(180deg, #1a3a6b 0, #1a3a6b 120px, #fff 120px) !important;
+}
+
+.myassetWrap .header {
+    background: transparent !important;
+    border-bottom: none;
+}
+
+.myassetWrap .headTop .logo a,
+.myassetWrap .headTop .topUtil li,
+.myassetWrap .headTop .topUtil li a {
+    color: #fff !important;
+}
+
+.myassetWrap .gnbArea {
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.wealthWrap .contents,
+.tradingWrap .contents {
+    width: 980px;
+    margin: 0 auto;
+}
+
+.tradingWrap .header {
+    background: #fff !important;
+}
+
+/* prodStatus 아이콘 */
+.icoProduct.type1 {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #152475;
+    border: 1px solid #152475;
+    border-radius: 2px;
+    background: #f0f4ff;
+}
+
+/* 푸터 */
+.footer .callList,
+.footer .linkList {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.footArea {
+    width: 980px;
+    margin: 0 auto;
+    padding: 30px 0;
+    text-align: left;
+}
+
+.footArea .linkList a:before,
+.footArea .comLink .familySite > a:after,
+.footArea .footBtm .snsList a,
+.footArea .footBtm .webAcc_Mark,
+.footArea .footBtm .webAward_Mark,
+.footArea .footBtm .ccm_Mark,
+.footArea .footBtm .oneShinhanLogo {
+    background: none !important;
+}
+
+.footArea .linkList a:before {
+    content: none;
+}
+
+/* Guide 박스 — 이미지 없이 텍스트 표시 */
+.boxGuide {
+    padding: 0 !important;
+    min-height: 0 !important;
+}
+
+.boxGuide.type02 {
+    padding: 20px 24px !important;
+    margin-top: 20px;
+}
+
+.boxGuide.type02 .boxTit {
+    position: static;
+    transform: none;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+    text-indent: 0;
+    background: none !important;
+    font-size: 16px;
+    font-weight: 700;
+    color: #152475;
+    margin-bottom: 10px;
+}
+
+.boxGuide .listType1 > li:before {
+    background: #1598dc !important;
+    width: 4px !important;
+    height: 4px !important;
+    border-radius: 50%;
+}
+
+/* 로딩 */
+.data-loading {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}

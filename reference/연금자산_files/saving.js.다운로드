@@ -1,0 +1,941 @@
+/**
+ * 연금저축 > 연금저축 유틸리티
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.31 | 정명현 | 최초생성 |
+ */
+(function (){
+
+si.config(function($cfg){
+	var rootBinder = $cfg.get('rootBinder');
+	rootBinder.addService('saving');
+});	
+
+//컨트롤러 로딩
+si.util.load('/siw/common/biz', [
+	'/wealth-management/fund/popup/commL01.js',
+	'/wealth-management/fund/popup/commL02.js'
+]);	
+
+si.service('saving', function($svc) {
+	var log = $svc.logger('saving');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var wpopup = $svc.get('wpopup');
+	var location = $svc.get('location');
+	var menu = $svc.get('menu');
+	
+	var o = {};
+	o.getPath = function() {
+		return '/siw/common/biz/pension';
+	};
+	
+	//=====================================================================
+	//*****펀드공통 팝업
+	//투자상담문의 팝업
+	o.popCounsel = function(vo,ev){
+		//필수PARAM
+		//1. 로그인여부 (true, false)
+		lpopup.open('commL01', '/siw/html/wealth-management/fund/commL01.html', {isLogin : si.data.isLogin()}).then(function(rsPop) {
+			util.setFocus(ev);
+			if(rsPop) {
+				
+			}
+		});
+	};
+	//오늘본펀드 팝업
+	o.popTodayFund = function(vo,ev){
+		lpopup.open('commL02', '/siw/html/wealth-management/fund/commL02.html', {}).then(function(rsPop) {
+			util.setFocus(ev);
+			if(rsPop) {
+				
+			}
+		});
+	};
+	//한장요약 팝업
+	o.popOnePage = function(fundCode){
+		var param = {
+			fundCode : fundCode
+		};
+		var options = {
+				width: '1017',
+				height: '700'
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/599071/view-popup.do', '599071', param, options);
+	};
+	//관심펀드 팝업
+	o.popInterestFund = function(vo,ev){
+		
+		if(!si.data.isLogin()){
+			lpopup.alert('로그인 후 이용해주세요',ev);
+			return false;
+		}
+		
+		var options = {
+				width: '1077',
+				height: '700'
+		};
+		
+		//관심펀드에서 -> 신규매수 Step2로 진입했을경우 이전으로 돌아오기 위해 현재 menu 코드를 가지고 있는다.
+		wpopup.open('/siw/wealth-management/fund/popup/599501/view-popup.do', '599501', {}, options);
+	};
+	//투자정보 팝업
+	o.popInvestorRelations = function(fundCode,fileType){
+		var options = {
+				width: '1038',
+				height: '700'
+		};
+		var param = {
+				fundCode : fundCode,
+				fileType : fileType
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/599201/view-popup.do', '599201', param, options);
+	};
+	//자산명세 팝업
+	o.popAssetInventory = function(fundCode, searchDate){
+		var options = {
+				width: '1017',
+				height: '700'
+		};
+		var param = {
+			fund_code : fundCode,
+			search_date : searchDate
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/599051/view-popup.do', '599051', param, options);
+	};
+	//상세보기 팝업 (펀드기본정보)
+	o.popFundDetail = function(fundCode){
+		var options = {
+				width: '1077',
+				height: '700'
+		};
+		var param = {
+			fund_code : fundCode
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/599002/view-popup.do', '599002', param, options);
+	};
+	
+	//비교하기 팝업
+	//tabIdx : pop 이면 윈도우팝업에서 호출된 경우, 그외는 TAB화면 Index 값
+	o.popCompare = function(tabIdx, o){
+		var list = new Array();
+		$('input[name="checkbox-list"]:checked').each(function(){
+			list.push($(this).val());
+		});
+		
+		if(list.length > 1 && list.length < 4){
+			//pop 이 true면 팝업에서 호출된 경우로 판단함
+			var fundList = '';
+			_.each(list, function(v, i){
+				fundList = fundList.concat(v).concat('|');
+			});
+			
+			var param = {
+				list : fundList,
+				menuId : menu.currentMenucode(),
+				tabIdx : tabIdx
+			};
+			
+			if('10202003' == menu.currentMenucode()){
+				//투자유형, 투자기간, 투자금액
+				param.type = o.type();
+				param.term = o.term();
+				param.amt = o.amt();
+			}
+			
+			var options = {
+				width: '987',
+				height: '700'
+			};
+			wpopup.open('/siw/wealth-management/fund/popup/compare/view-popup.do', 'compare', param, options);
+		}else{
+			lpopup.alert('상품비교는 2~3건만 가능합니다.');
+		}
+	};
+	
+	//펀드가입내역
+	o.popFundTradingList = function(obj){
+		var options = {
+				width: '737',
+				height: '700'
+		};
+		var param = {
+			acctno : obj.acctno,
+			pwd : obj.pwd,
+			fund_code : obj.fund_code,
+			fund_name : obj.fund_name,
+			fund_seq : obj.fund_seq,
+			acct_gds_code : obj.acct_gds_code,
+			acct_gds_txt : obj.acct_gds_txt
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/5800504/view-popup.do', '5800504', param, options);
+	};	
+	//일자별잔고
+	o.popFundBalanceList = function(obj){
+		var options = {
+				width: '877',
+				height: '700'
+		};
+		var param = {
+			acctno : obj.acctno,
+			pwd : obj.pwd,
+			fund_code : obj.fund_code,
+			fund_name : obj.fund_name,
+			fund_seq : obj.fund_seq
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/5800505/view-popup.do', '5800505', param, options);
+	};	
+	//수익률추이
+	o.popFundViewInfo = function(fundCode){
+		var options = {
+				width: '987',
+				height: '700'
+		};
+		var param = {
+			fund_code : fundCode
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/599003/view-popup.do', '599003', param, options);
+	};	
+	
+	//펀드이동 확인서 출력
+	o.popPrintFundMove = function(obj){
+		var options = {
+				width: '877',
+				height: '700'
+		};
+		var param = {
+			acpt_ymd : obj.acpt_ymd,	//접수일자
+			acpt_seq : obj.acpt_seq,	//접수순번
+			inout_gb : obj.inout_gb		//구분 (2 : 신한 -> 타사, 공백 : 타사 -> 신한)
+		};
+		wpopup.open('/siw/wealth-management/fund/popup/print-fundMove/view-popup.do', 'print-fundMove', param, options);
+	};	
+	
+	//====================================================================
+	//*****페이지이동
+	//펀드매매 신규매수(일괄매수)
+	//list : | 구분자로 전달 2082501|2025500|2027500|, tabIdx : LIST페이지가 TAB형식인경우 구분값 없으면 공백
+	o.moveNewBuyAll = function(tabIdx){
+		//연금 + 일반 펀드가 섞인경우는 매수이동금지
+		//연금만 선택된 경우는 연금펀드 신규매수로이동
+		//일반 -> 펀드 신규매수
+//		alert('일괄매수');
+		//param1 : list 구조의 펀드코드 ( | 구분자)
+		//param2 : 신규매수를 호출하는 페이지의 menucode
+//		var param1 = '2082501|2025500|2027500|1011802|';
+//		var param2 = '';
+		var fundArray = new Array();
+		
+		$('input[name="checkbox-list"]:checked').each(function(){
+			//log($(this).val());
+			fundArray.push($(this).val());
+		});
+		if(fundArray.length == 0){
+			lpopup.alert('펀드를 선택해 주세요.');
+			return false;
+		}
+		if(fundArray.length > 5){
+			lpopup.alert('일괄매수는 최대 5건까지 가능합니다.');
+			return false;
+		}
+
+		var fundList = '';
+		var fundListCnt = 0;
+		_.each(_.uniq(fundArray), function(v, i){
+			fundListCnt++;
+			fundList = fundList.concat(v).concat('|');
+		});
+		
+		if(fundListCnt != fundArray.length){
+			lpopup.alert('중복된 상품이 있습니다.');
+			return false;
+		}
+		
+		var param = {
+			fundCode : fundList,
+			menuId : menu.currentMenucode(),
+			tabIdx : tabIdx
+		};
+		log(param);
+		
+		http.post('/siw/wealth-management/fund/fund-comm08/data.do', param).then(function(rs){
+			log(rs);
+			if(rs){
+				//1. 전달받은 펀드코드를 기준으로 연금펀드와 연금펀드가 아닌펀드가 섞여있는지 판별한다.
+				//   연금만 있으면 연금펀드 신규매수(예약)으로 이동
+				//   연금펀드가 아닌 펀드만 있으면 신규매수(예약)으로 이동				
+				//   섞여 있으면 alert 처리 후 진행 X
+				if(rs['status'] == 'afund'){
+					location.go('/siw/pension/saving-holder/491004/view.do', param);
+				}else if(rs['status'] == 'wfund'){
+					location.go('/siw/wealth-management/fund/newBuy/view.do', param);
+				}else if(rs['status'] == 'error1'){
+					lpopup.alert('연금펀드는 연금펀드만 선택했을 경우 매수가능합니다.');
+					return false;
+				}else if(rs['status'] == 'error2'){
+					lpopup.alert('매수 불가한 상품이 존재합니다.');
+					return false;
+				}
+			}
+		});
+	};
+	
+	//펀드매매 신규매수(단건매수)
+	o.moveNewBuy = function(code, tabIdx){
+		var param = {
+			fundCode : code,
+			menuId : menu.currentMenucode(),
+			tabIdx : tabIdx
+		};
+		log(param);
+		http.post('/siw/wealth-management/fund/fund-comm08/data.do', param).then(function(rs){
+			log(rs);
+			if(rs){
+				//1. 전달받은 펀드코드를 기준으로 연금펀드와 연금펀드가 아닌펀드가 섞여있는지 판별한다.
+				//   연금만 있으면 연금펀드 신규매수(예약)으로 이동
+				//   연금펀드가 아닌 펀드만 있으면 신규매수(예약)으로 이동				
+				//   섞여 있으면 alert 처리 후 진행 X
+				if(rs['status'] == 'afund'){
+					location.go('/siw/pension/saving-holder/491004/view.do', param);
+				}else if(rs['status'] == 'wfund'){
+					location.go('/siw/wealth-management/fund/newBuy/view.do', param);
+				}
+			}
+		});
+	};
+	
+	//펀드가입 & 전용펀드 & 빠른 펀드 적립식 신규매수
+	//code : 펀드코드, tabIdx : 탭화면의 Index값, o : 추가로 처리해야되는 파라미터정보
+	o.moveBuy = function(code, tabIdx, o){
+		var param = {
+			fundCode : code,
+			menuId : menu.currentMenucode(),
+			tabIdx : tabIdx
+		};
+		log(param);
+		
+		//10202003 빠른 펀드 적립 서비스
+		if('10202003' == menu.currentMenucode()){
+			//투자유형, 투자기간, 투자금액
+			param.type = o.type();
+			param.term = o.term();
+			param.amt = o.amt();
+			if(param.term == ''){
+				lpopup.alert('기간을 입력해주세요.');
+				return false;
+			}else if(param.amt == ''){
+				lpopup.alert('금액을 입력해주세요.');
+				return false;
+			}
+		}
+		
+		http.post('/siw/wealth-management/fund/fund-comm08/data.do', {fundCode : code}).then(function(rs){
+			log(rs);
+			if(rs){
+				//1. 전달받은 펀드코드를 기준으로 연금펀드와 연금펀드가 아닌펀드가 섞여있는지 판별한다.
+				//   연금만 있으면 연금펀드 신규매수(예약)으로 이동
+				//   연금펀드가 아닌 펀드만 있으면 신규매수(예약)으로 이동				
+				//   섞여 있으면 alert 처리 후 진행 X
+				if(rs['status'] == 'afund'){
+					location.go('/siw/pension/saving-holder/491004/view.do', param);
+				}else if(rs['status'] == 'wfund'){
+					location.go('/siw/wealth-management/fund/buy/view.do', param);
+				}
+			}
+		});
+	};
+	
+	//상세보기
+	o.moveDetail = function(code, tabIdx, o){
+		
+		//추천펀드, 전용펀드, 일반인지 구분필요.
+		
+		//펀드코드 7자리
+		var param = {
+			fund_code : code,
+			menuId : menu.currentMenucode(),
+			//tabIdx : tabIdx
+		};
+		
+		//10202003 빠른 펀드 적립 서비스
+		if('10202003' == menu.currentMenucode()){
+			//투자유형, 투자기간, 투자금액
+			param.type = o.type();
+			param.term = o.term();
+			param.amt = o.amt();
+		}
+		
+		location.go('/siw/wealth-management/fund/599001/view.do',param);
+	};
+	
+	//베스트랭킹펀드이동
+	o.moveBestType = function(type){
+		var url = '';
+		if(type == '1') url = '/siw/wealth-management/fund/000201/view.do';
+		else if(type == '2') url = '/siw/wealth-management/fund/000202/view.do';
+		else if(type == '3') url = '/siw/wealth-management/fund/000203/view.do';
+		else if(type == '4') url = '/siw/wealth-management/fund/000204/view.do';
+		else if(type == '5') url = '/siw/wealth-management/fund/000205/view.do';
+		else if(type == '6') url = '/siw/wealth-management/fund/000206/view.do';
+		location.go(url);
+	};
+	
+	//====================================================================
+	//*****조회	
+	//위험등급코드 한글변환
+	o.getDangerCodeTxt = function(str){
+		var resultTxt = '';
+		//상품위험등급코드
+		if(str == '1') resultTxt = '매우높은위험';
+		else if(str == '2') resultTxt = '높은위험';
+		else if(str == '3') resultTxt = '다소높은위험';
+		else if(str == '4') resultTxt = '보통위험';
+		else if(str == '5') resultTxt = '낮은위험';
+		else if(str == '6') resultTxt = '매우낮은위험';
+		return resultTxt;
+	}
+
+	//선취수수료 한글변환
+	//온라인전용 한글변환
+	//추천 한글변환
+	o.CodeToTxt = function(code, text){
+		var resultTxt = '';
+		if(text == '선취'){
+			//현재는 1로 넘어옴. 변경대비하여 Y도 추가
+			if(status == "1" || status == "Y") resultText = '선취';
+		}else if(text == '온라인'){
+			if(status == "Y") resultText = '온라인';
+		}else if(text == '추천'){
+			if(status == "Y") resultText = '추천';
+		}
+		return resultTxt;
+	};
+	
+	//WMS자산유형코드
+	o.WMSCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == "1")
+			resultTxt = '국내주식';
+		else if(cd == "2")
+			resultTxt = '해외선진';
+		else if(cd == "3")
+			resultTxt = '해외이머징';
+		else if(cd == "4")
+			resultTxt = '국내채권';
+		else if(cd == "5")
+			resultTxt = '해외채권';
+		else if(cd == "6")
+			resultTxt = '대안투자';
+		else if(cd == "7")
+			resultTxt = '유동성';
+		else if(cd == "8")
+			resultTxt = '구조화상품';
+		else if(cd == "9")
+			resultTxt = '방카슈랑스';
+		return resultTxt;
+	};
+	
+	//MMF - type4
+	o.MMFCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == "5")
+			resultTxt = '주식형';
+		else if(cd == "3" || cd == "4")
+			resultTxt = '혼합형';
+		else if(cd == "2")
+			resultTxt = '채권형';
+		else if(cd == "1")
+			resultTxt = 'MMF';
+		else if(cd == "6")
+			resultTxt = '파생상품';
+		else if(cd == "7")
+			resultTxt = '부동산';
+		else if(cd == "8")
+			resultTxt = '실물';
+		else if(cd == "9")
+			resultTxt = '재간접';
+		else if(cd == "B")
+			resultTxt = '특별자산';
+		return resultTxt;
+	};	
+	
+//	//MMF - wideshot
+	o.MMFWSCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == "5")
+			resultTxt = '주식형';
+		else if(cd == "3")
+			resultTxt = '채권혼합형';
+		else if(cd == "4")
+			resultTxt = '주식혼합형';
+		else if(cd == "2")
+			resultTxt = '채권형';
+		else if(cd == "1")
+			resultTxt = 'MMF';
+		else if(cd == "6")
+			resultTxt = '파생상품';
+		else if(cd == "7")
+			resultTxt = '부동산';
+		else if(cd == "8")
+			resultTxt = '실물';
+		else if(cd == "9")
+			resultTxt = '재간접';
+		else if(cd == "B")
+			resultTxt = '특별자산';
+		return resultTxt;
+	};
+	
+	//기간코드 선택별 Text
+	o.termCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == '1'){
+			resultTxt = '1개월';
+		}else if(cd == '2'){
+			resultTxt = '3개월';
+		}else if(cd == '3'){
+			resultTxt = '6개월';
+		}else if(cd == '4'){
+			resultTxt = '1년';
+		}
+		return resultTxt;
+	};
+	
+	//비율(String) > 소수점반환
+	o.getStrToRate = function(str, cnt, fm){
+		var bnrate = '';
+		if(str){
+			bnrate = parseFloat(str).toFixed(cnt) + fm;
+		}
+		return bnrate;
+	};
+	
+	//css txtUp, txtDown
+	o.getTxtUpDown = function(rate){
+		var txt = '';
+		if(rate > 0){
+			txt = 'txtUp'
+		}else if(rate < 0){
+			txt = 'txtDown'
+		}
+		return txt;
+	};
+	
+	//css fluUp, fluDown
+	o.getfluUpDown = function(rate){
+		var txt = '';
+		if(rate > 0){
+			txt = 'fluUp'
+		}else if(rate < 0){
+			txt = 'fluDown'
+		}
+		return txt;
+	};
+	
+	//css colPoint01, colPoint02, colPoint03
+	o.getColPoint = function(rate){
+		var txt = 'colPoint02';
+		if(rate > 0){
+			txt = 'colPoint03'
+		}else if(rate < 0){
+			txt = 'colPoint01'
+		}
+		return txt;
+	};	
+	
+	//▲ 표시관련 0보다 작은지만 비교.
+	o.compareZeroUp = function(str){
+		var result = true;
+		if(util.replaceAll(str,',','') < 0){
+			result = false;
+		}
+		return result;
+	};
+	
+	//▲ 표시관련 음수 -> 양수로 변환
+	o.getRateFormat1 = function(str, cnt, fm){
+		var bnrate = '';
+		if(str == '')str = '0';
+		if(str < 0)str = str * -1;
+		if(str){
+			bnrate = parseFloat(str).toFixed(cnt) + fm;
+		}
+		return bnrate;
+	};
+	
+	//중기전망값
+	o.mtermCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == '1'){
+			resultTxt = '비중축소';
+		}else if(cd == '2'){
+			resultTxt = '중립';
+		}else if(cd == '3'){
+			resultTxt = '비중확대';
+		}else{
+			resultTxt = '-';
+		}
+		return resultTxt;
+	};
+	
+	o.ageCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == '6'){
+			resultTxt = '60대이상';
+		}else if(cd == '5'){
+			resultTxt = '50대';
+		}else if(cd == '4'){
+			resultTxt = '40대';
+		}else if(cd == '3'){
+			resultTxt = '30대';
+		}else if(cd == '2'){
+			resultTxt = '20대';
+		}else if(cd == '1'){
+			resultTxt = '10대';
+		}
+		return resultTxt;
+	};	
+	
+	//저축구분코드
+	o.svTpCodeToTxt = function(cd){
+		var resultTxt = '';
+		if(cd == '1'){
+			resultTxt = '임의식';
+		}else if(cd == '2'){
+			resultTxt = '거치식';
+		}else if(cd == '3'){
+			resultTxt = '정액적립식';
+		}else if(cd == '4'){
+			resultTxt = '자유적립식';
+		}
+		return resultTxt;		
+	}
+	
+	o.getFundDetailCodeToTxt = function(str){
+		var resultTxt = '';
+		//펀드 클래스 상세 분류코드
+		if(str == '01') resultTxt = '보수체감';
+		else if(str == '02') resultTxt = '무권유저비용';
+		else if(str == '03') resultTxt = '개인연금';
+		else if(str == '04') resultTxt = '퇴직연금';
+		else if(str == '05') resultTxt = '주택마련';
+		else if(str == '06') resultTxt = '기관';
+		else if(str == '07') resultTxt = '고액';
+		else if(str == '08') resultTxt = '랩';
+		else if(str == '09') resultTxt = 'CMA';
+		else if(str == '10') resultTxt = '계열사자금';
+		else if(str == '11') resultTxt = '고유재산';
+		else if(str == '12') resultTxt = '금전신탁';
+		else if(str == '13') resultTxt = '기금';
+		else if(str == '14') resultTxt = '기부';
+		else if(str == '15') resultTxt = '변액보험특별계정';
+		else if(str == '16') resultTxt = '보험';
+		else if(str == '17') resultTxt = '사원복지연기금';
+		else if(str == '18') resultTxt = '소득공제';
+		else if(str == '19') resultTxt = '월지급식';
+		else if(str == '20') resultTxt = '유공자 등';
+		else if(str == '21') resultTxt = '펀드 등';
+		else if(str == '22') resultTxt = '적립식';
+		else if(str == '23') resultTxt = '전담중개업자';
+		else if(str == '24') resultTxt = '전문투자자';
+		else if(str == '25') resultTxt = '전환가능';
+		else if(str == '26') resultTxt = '적격투자자';
+		return resultTxt;
+	}
+	
+	//펀드 상품명 위 icon 노출 Type1 
+	//param (상품위험등급코드, WMS자산유형코드, 판매수수료징수구분코드, 온라인전용여부, 추천상품여부, 계열사펀드여부, 펀드클래스상세분류코드1, 펀드클래스상세분류코드2, 고난도상품여부, 파생펀드여부)
+	//CSS -> 이미지 변경가능성으로 공통함수에서 처리함
+	o.getProductIcon1 = function(pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pm10){
+		var resultTxt = '';
+		//1. 상품위험등급코드 처리
+		if(pm1 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type2">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '3'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type3">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '4'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type4">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '5'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type5">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '6'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type6">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}
+		//2. WMS 자산유형코드 처리
+		if(pm2 != ''){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFundP type1">').concat(o.WMSCodeToTxt(pm2)).concat('</span>');
+		}
+		//3. 판매수수료징수구분코드
+		if(pm3 == '0' || pm3 == 'N'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료미징구').concat('</span>');
+		} else if(pm3 == '1' || pm3 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료선취').concat('</span>');
+		} else if(pm3 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료후취').concat('</span>');
+		}
+		//4. 온라인전용여부
+		if(pm4 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoSell">').concat('온라인').concat('</span>');
+		} else if (pm4 == 'N') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoSell">').concat('오프라인').concat('</span>');
+		}
+		
+		if(pm5 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoVal">').concat('추천').concat('</span>');
+		}
+		if(pm6 == '신한BNP파리바자산운용' || pm6 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoSub">').concat('계열사펀드').concat('</span>');
+		}
+		
+		//금감원 펀드 클래스 상세분류 코드 추가 (2개 표시 가능)
+		if(pm7 && pm7 != '00') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoClass type01">').concat(o.getFundDetailCodeToTxt(pm7)).concat('</span>');
+		}
+		if(pm8 && pm8 != '00') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoClass type01">').concat(o.getFundDetailCodeToTxt(pm8)).concat('</span>');
+		}
+		
+		//고난도상품여부
+		if(pm9 && pm9 == 'Y') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoEtc3">').concat('고난도').concat('</span>');
+		}
+		
+		//파생펀드여부
+		if(pm10 && pm10 == 'Y') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoFund type5">').concat('파생상품').concat('</span>');
+		}
+		
+		return resultTxt;
+	};
+
+    //펀드등급, 펀드유형, 판매여부, 추천여부
+	o.getProductIcon2 = function(pm1, pm2, pm3, pm4){
+		var resultTxt = '';
+		//1. 상품위험등급코드 처리
+		if(pm1 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type2">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '3'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type3">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '4'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type4">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '5'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type5">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '6'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type6">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}
+		//2. 펀드유형
+		if(!_.isUndefined(pm2) && pm2 != ''){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFund type1">').concat(pm2).concat('</span>');
+		}
+		//3. 판매여부
+		if(pm3 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoPay">').concat('판매중').concat('</span>');
+		}
+		//4. 추천여부
+		if(pm4 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoVal">').concat('추천').concat('</span>');
+		}
+		return resultTxt;
+	};
+	
+    //위험등급, 펀드유형, 선취여부, 온라인여부
+	o.getProductIcon3 = function(pm1, pm2, pm3, pm4){
+		var resultTxt = '';
+		//1. 상품위험등급코드 처리
+		if(pm1 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type2">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '3'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type3">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '4'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type4">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '5'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type5">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '6'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type6">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}
+		//2. 펀드유형
+		if(!_.isUndefined(pm2) && pm2 != ''){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFundP type3">').concat(o.WMSCodeToTxt(pm2)).concat('</span>');
+		}
+		//3. 선취여부
+		if(pm3 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('선취').concat('</span>');
+		}
+		//4. 온라인여부
+		if(pm4 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoSell">').concat('온라인').concat('</span>');
+		}
+		return resultTxt;
+	};
+	
+	//sbcc114q1 위험도, 유형, 판매여부
+	o.getProductIcon4 = function(pm1, pm2, pm3){
+		
+		var resultTxt = '';
+		//1. 상품위험등급코드 처리
+		if(pm1 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type2">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '3'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type3">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '4'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type4">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '5'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type5">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}else if(pm1 == '6'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type6">').concat(o.getDangerCodeTxt(pm1)).concat('</span>');
+		}
+		//2. 펀드유형
+		if(!_.isUndefined(pm2) && pm2 != ''){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFund type1">').concat(pm2).concat('</span>');
+		}
+		//3. 판매여부
+		if(pm3 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoPay">').concat('판매중').concat('</span>');
+		}	
+		return resultTxt;
+	};
+	
+	//해외주식전용펀드/위험도/펀드유형/수수료/온라인전용/고령투자자유의상품/추천/펀드클래스상세분류코드1/펀드클래스상세분류코드2
+	o.getProductIcon5 = function(pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9){
+		
+		var resultTxt = '';
+		//1. 해외주식전용펀드
+		if(pm1 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat('해외주식전용펀드').concat('</span>');
+		}
+		//2. 상품위험등급코드 처리
+		if(pm2 == '1'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type1">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}else if(pm2 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type2">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}else if(pm2 == '3'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type3">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}else if(pm2 == '4'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type4">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}else if(pm2 == '5'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type5">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}else if(pm2 == '6'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger type6">').concat(o.getDangerCodeTxt(pm2)).concat('</span>');
+		}
+		//3. 펀드유형
+		if(!_.isUndefined(pm3) && pm3 != ''){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFund type1">').concat(pm3).concat('</span>');
+		}
+		//4. 수수료
+		if(pm4 == '0' || pm4 == 'N'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료미징구').concat('</span>');
+		}  else if(pm4 == '1' || pm4 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료선취').concat('</span>');
+		} else if(pm4 == '2'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoFee type2">').concat('수수료후취').concat('</span>');
+		}
+		
+		//5. 온라인전용
+		if(pm5 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoSell">').concat('온라인').concat('</span>');
+		} else if (pm5 == 'N'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoSell">').concat('오프라인').concat('</span>');
+		}
+		
+		//6. 고령투자자유의상품
+		if(pm6 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoDanger">').concat('고령투자자유의상품').concat('</span>');
+		}	
+		//7. 추천
+		if(pm7 == 'Y'){
+			resultTxt = resultTxt.concat('<span class="icoProd icoVal">').concat('추천').concat('</span>');
+		}		
+		
+		//8. 9. 금감원 펀드 클래스 상세분류 코드 추가 (2개 표시 가능)
+		if(pm8 && pm8 != '00') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoClass type01">').concat(o.getFundDetailCodeToTxt(pm9)).concat('</span>');
+		}
+		if(pm9 && pm9 != '00') {
+			resultTxt = resultTxt.concat('<span class="icoProd icoClass type01">').concat(o.getFundDetailCodeToTxt(pm10)).concat('</span>');
+		}
+		
+		return resultTxt;
+	};	 
+	
+	
+	o.getMStrClass = function(pm){
+		var resultTxt = '';
+		//grade2
+		if(pm != '')resultTxt = 'grade'+util.strToInt(pm);
+		return resultTxt;
+	};
+	
+	o.getMStrTxt = function(pm){
+		var resultTxt = '';
+		//2등급
+		if(pm != '')resultTxt = util.strToInt(pm)+'등급';
+		return resultTxt;
+	};
+	
+	o.getMStarHtml = function(pm){
+		return '<p class="starGrade '+o.getMStrClass(pm)+'" ><span>'+o.getMStrTxt(pm)+'</span></p>';
+	};
+	
+	o.getMStarBHtml = function(pm){
+		return '<p class="starGradeB '+o.getMStrClass(pm)+'" ><span>'+o.getMStrTxt(pm)+'</span></p>';
+	};
+	
+	//펀드 업무 쿠키저장 (키값 = todayFundList : 오늘본펀드, controllerID-viewType : 카드뷰, 자세히보기)
+	o.fundCookieMgr = function(){
+		return {
+			remove : remove,
+			add : add,
+			get : get
+		};
+			
+		function remove(key){
+			$.removeCookie(key);
+		};
+		
+		function add(key,value){
+			if(key == 'todayFundList'){
+				if(_.isEmpty($.cookie(key))){
+					//없으면 1건
+					$.cookie(key,value,{expires:1,path: '/'});
+				}else{
+					//조건 최대 10건... 최신기준...유지... 중복은 넣지 않음...
+					var currList = $.cookie(key).split(':');
+					//currList에 추가될 code와 같지 않은것만 LIST UP
+					currList = _.filter(currList, function(v, i){ return v !=  value && i < 10});
+					var list = '';
+					//현재 LIST가 중복없이 10개인 경우 0번째 제거 
+					if(currList.length == 10){
+						currList = currList.slice(1);
+					}
+					_.each(currList, function(v, i){
+						list = list.concat(v).concat(':');
+					});
+					list = list.concat(value);
+					$.cookie(key,list,{expires:1,path: '/'});
+				}
+			}else if(key.indexOf('-viewType') > 0){
+				$.cookie(key,value);
+			}
+		};
+		function get(key){
+			if(_.isEmpty($.cookie(key)) || _.isUndefined($.cookie(key))){
+				return '';
+			}else{
+				return $.cookie(key);
+			}
+		};
+		
+	};
+	
+	return o;
+});
+
+})();

@@ -1,0 +1,215 @@
+/**
+ * 현재 투자자 성향 공통 Component
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2025.12.11 | 이호준 | 최초생성 |
+ */
+(function (){
+si.util.load('/siw/common/biz/common','lypop-currentInvestorTendencyConfirm.js');
+si.util.load('/siw/common/biz/common','lypop-investorInfoReRegistration.js');
+
+si.service('currentInvestorTendencyCommon', function($svc) {
+	var log = $svc.logger('currentInvestorTendencyCommon');
+    var util = $svc.get('util');
+	var http = $svc.get('http');
+	var lpopup = $svc.get('lpopup');
+	
+	return {
+		confirmCurrentInvestorTendency : confirmCurrentInvestorTendency,
+		informInvestorInfoReRegistration: informInvestorInfoReRegistration,
+		callCurrentInvestorTendency: callCurrentInvestorTendency
+    };
+	
+    function confirmCurrentInvestorTendency(param) {
+		var deferred = $.Deferred();
+		http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+			type : "confirm",
+		}).then(function(versionInfoData) {
+			// tr 에러를 제외한 메시지가 있을 경우 에러 alert
+			if (!versionInfoData.result && versionInfoData.exposureErrorMsg != undefined && versionInfoData.exposureErrorMsg != '') {
+				lpopup.alert(versionInfoData.exposureErrorMsg);
+			} 
+			// tr 에러인 경우 메시지 alert
+			else if (!versionInfoData.result && versionInfoData.errorMsg != undefined && versionInfoData.errorMsg != '') {
+				lpopup.alert(versionInfoData.errorMsg);
+			} 
+			// 전문 투자자일 경우 현투 팝업 노출 x
+			else if (versionInfoData.isProInvestor) {
+				deferred.resolve({
+					confirmCompleted: true,
+					type: 'skip',
+				});
+				
+				return;
+			}
+			// 미제공일 경우 현투 팝업 노출 x
+			else if (versionInfoData.isSkip) {
+				deferred.resolve({
+					confirmCompleted: true,
+					type: 'skip',
+				});
+				
+				return;
+			}
+			// 버전 정보가 3인 경우 현투 동일 여부 팝업 노출 조건 충족
+			else if (versionInfoData.result && versionInfoData.versionInfoCode == '3') {
+				http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+					type : "sessionConfirm",
+					goodsType: param.goodsType
+				}).then(function(data) {
+					// 세션 체크하여 기존에 현투 성향 체크된게 없을 경우 실제로 팝업 노출
+					if (!data.currentInvestorTendency) {
+						lpopup.open('layerCurrentInvestorTendencyConfirm', '/siw/common/biz/common/lypop-currentInvestorTendencyConfirm.html?ver=20251230',{}).then(function(data) {
+							// 현투 성향 변경한 경우
+							if (data.result) {
+								// 세션 변경하여 현투 성향 체크된 거로 변경
+								http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+									type : "sessionSetting",
+									goodsType: param.goodsType,
+								}).then(function(data) {});
+								
+								deferred.resolve({
+									confirmCompleted: true,
+									type: 'search',
+								});
+								
+								return;
+							} 
+							// 현투 성향 변경하지 않은 경우
+							else {
+								http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+									type : "sessionSetting",
+									goodsType: param.goodsType,
+								}).then(function(data) {});
+								
+								deferred.resolve({
+									confirmCompleted: true,
+									type: 'skip',
+								});
+								
+								return;
+							}
+						});
+					} else {
+						deferred.resolve({
+							confirmCompleted: true,
+							type: 'skip',
+						});
+						return;
+					}
+				});
+			} else {
+				deferred.resolve({
+					confirmCompleted: true,
+					type: 'skip',
+				});
+				return;
+			}
+		});
+		
+		
+		return deferred.promise();
+	}
+	
+    function informInvestorInfoReRegistration() {
+    	var deferred = $.Deferred();
+		http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+			type : "reRegistration",
+		}).then(function(data1) {
+			// tr 에러를 제외한 메시지가 있을 경우 에러 alert
+			if (!data1.result && data1.exposureErrorMsg != undefined && data1.exposureErrorMsg != '') {
+				lpopup.alert(data1.exposureErrorMsg);
+			} 
+			// 전문 투자자인 경우 투자자 정보 확인서 재등록 팝업 및 현투 동일 여부 팝업 노출 x
+			else if (data1.result && data1.isProInvestor) {
+				deferred.resolve({
+					popupCompleted: true,
+					type: 'skip'
+				});
+				
+				return;
+			} 
+			// tr 에러가 나거나 정상인데 버전정보가 3이 아닌 경우 투자자 정보 확인서 재등록 팝업 노출
+			else if (!data1.result || (data1.result && data1.versionInfoCode != '3')) {
+				lpopup.open('layerInvestorInfoReRegistration', '/siw/common/biz/common/lypop-investorInfoReRegistration.html?ver=20251230',{}).then(function(data2) {
+					if (data2.result) {
+						deferred.resolve({
+							popupCompleted: true,
+							type: 'search',
+						});
+						return;
+					}
+				});
+			} 
+			// 그 외 경우는 투자자 정보 확인서 재등록 팝업 노출 X
+			else {
+				deferred.resolve({
+					popupCompleted: true,
+					type: 'skip',
+				});
+				return;
+			}
+			
+			return;
+		});
+
+		return deferred.promise();
+	}
+
+	function callCurrentInvestorTendency(param) {
+		var deferred = $.Deferred();
+		http.post('/siw/common/currentInvestorTendencyCommon/data.do', {
+			type : "reRegistration",
+		}).then(function(data1) {
+			// tr 에러를 제외한 메시지가 있을 경우 에러 alert
+			if (!data1.result && data1.exposureErrorMsg != undefined && data1.exposureErrorMsg != '') {
+				lpopup.alert(data1.exposureErrorMsg);
+			} 
+			// 전문 투자자인 경우 투자자 정보 확인서 재등록 팝업 및 현투 동일 여부 팝업 노출 x
+			else if (data1.result && data1.isProInvestor) {
+				deferred.resolve({
+					popupCompleted: true,
+					type: 'skip'
+				});
+				
+				return;
+			} 
+			// tr 에러가 나거나 정상인데 버전정보가 3이 아닌 경우 투자자 정보 확인서 재등록 팝업 노출
+			else if (!data1.result || (data1.result && data1.versionInfoCode != '3')) {
+				lpopup.open('layerInvestorInfoReRegistration', '/siw/common/biz/common/lypop-investorInfoReRegistration.html?ver=20251230',{}).then(function(data2) {
+					// 투자자 정보 확인서 재등록하였을 경우에는 현투성향 상관없이 재조회 하기 위해 'search'로 리턴
+					if (data2.result) {
+						confirmCurrentInvestorTendency(param).then(function(body) {
+							if (body.confirmCompleted) {
+								deferred.resolve({
+									popupCompleted: true,
+									type: 'search',
+								});
+							}
+							return
+						});
+					}
+				});
+			} 
+			// 그 외 경우는 투자자 정보 확인서 재등록 팝업 노출 X
+			else {
+				confirmCurrentInvestorTendency(param).then(function(body) {
+					if (body.confirmCompleted) {
+						deferred.resolve({
+							popupCompleted: true,
+							type: body.type
+						});
+					}
+					return
+				});
+			}
+			
+			return;
+		});
+
+		return deferred.promise();
+	}
+});
+
+})();

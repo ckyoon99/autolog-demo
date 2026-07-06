@@ -1,0 +1,169 @@
+@charset "utf-8";
+/* 연금펀드 검색 — Top 3 랭킹 카드 */
+
+.themeFundBest {
+    margin-top: 30px;
+    overflow: hidden;
+    clear: both;
+}
+
+.themeFundBest:after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.themeFundBest .themeFundOption {
+    float: left;
+    width: 220px;
+    margin-right: 16px;
+}
+
+.themeFundBest .themeFundOption .intro {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.themeFundBest .themeFundOption .title {
+    font-size: 36px !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.1 !important;
+    word-break: keep-all;
+}
+
+.themeFundBest .visualRanking {
+    float: right;
+    width: 738px;
+    height: 430px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a3a6b 0%, #2a5298 50%, #1598dc 100%) !important;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.themeFundBest .visualRanking ol.layoutTbl {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: 100% !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    box-sizing: border-box;
+}
+
+.themeFundBest .visualRanking ol.layoutTbl > li {
+    display: block !important;
+    float: none !important;
+    position: relative !important;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto !important;
+    height: auto;
+    min-height: 350px;
+    padding: 28px 12px 28px;
+    color: #fff;
+    text-align: center;
+    box-sizing: border-box;
+    border-left: 2px dotted rgba(255, 255, 255, 0.25);
+}
+
+.themeFundBest .visualRanking ol.layoutTbl > li:first-child {
+    border-left: none;
+}
+
+.themeFundBest .visualRanking li .ranking {
+    margin-bottom: 8px;
+    font-size: 38px;
+    line-height: 1;
+    color: #fff;
+}
+
+.themeFundBest .visualRanking li .title {
+    overflow: visible;
+    display: block;
+    height: auto !important;
+    min-height: 78px;
+    margin-bottom: 14px;
+    padding: 0 6px;
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    color: #fff !important;
+    letter-spacing: normal !important;
+    word-break: keep-all;
+}
+
+.themeFundBest .visualRanking li .typeInfo {
+    background: none !important;
+    margin-top: 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    clear: both;
+}
+
+.themeFundBest .visualRanking li .typeInfo dt {
+    padding-top: 0;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.themeFundBest .visualRanking li .typeInfo dd {
+    padding-top: 8px;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+    color: #fff;
+}
+
+.themeFundBest .visualRanking li .typeInfo dd .unit {
+    font-size: 17px;
+}
+
+.themeFundBest .visualRanking .productType {
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 10px auto 16px;
+}
+
+.themeFundBest .visualRanking .productType .row {
+    display: block;
+}
+
+.themeFundBest .visualRanking .productType .prodType {
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 3px 2px;
+    padding: 4px 6px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    color: #fff !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    vertical-align: middle;
+}
+
+.themeFundBest .visualRanking a.btnView {
+    display: inline-block;
+    width: 130px;
+    padding: 5px 0;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.themeFundBest .visualRanking a.btnView:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.themeFundBest .visualRanking .data-loading {
+    flex: 1 1 100%;
+    color: #fff;
+    padding-top: 140px;
+}

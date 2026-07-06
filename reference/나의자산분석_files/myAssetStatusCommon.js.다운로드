@@ -1,0 +1,109 @@
+/**
+ * 나의자산현황 공통 서비스
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.04.15 | 정원영 | 최초생성 |
+ */
+(function (){
+
+//service
+si.service('myAssetStatusCommon', function($svc) {
+    var log = $svc.logger('myAssetStatusCommon');
+    var util = $svc.get('util');
+	var http = $svc.get('http');
+	var loading = $svc.get('uiLoading');
+	var lpopup = $svc.get('lpopup');
+	var router = $svc.get('router');
+
+    return {
+    	getCustGrade : custGrade,
+    	getTotalAsset : totalAsset,
+    	getTotalAccount : totalAccount,
+    	getFundList : fundList,
+    	getAccountList : accountList,
+    	getOwnStock : ownStock,
+    	getMyActivityDtl : myActivityDtl
+    };
+    
+    
+ // ==================================================
+	var lc = {};	// local 변수	관리
+	
+	//고객등급정보 조회
+	function custGrade(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType : 'custGrade'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	
+	//고객총자산조회
+	function totalAsset(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType : 'totalAsset'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	//총계좌조회
+	function totalAccount(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType : 'totalAccount'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	//보유펀드수익율현황
+	function fundList(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType:'fundList'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	
+	//전체계좌리스트
+	function accountList(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType:'accountList'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	//보유종목 리스트
+	function ownStock(param){
+		var deferred = $.Deferred();
+		http.post('/siw/myasset/status/myAssetStatusCommon/data.do', {serviceType:'ownStock'}, true).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+	
+	//나의 활동 내역
+	function myActivityDtl(startDate, endDate, gubn, repeatKey){
+		//gubn : 조회구분 (0.전체  1.입출금  2.주식거래내역  3.상품거래내역)
+		var deferred = $.Deferred();
+        var prm = {
+            startDate : startDate,
+            endDate : endDate,
+            gubn : gubn,
+        }
+		//반복데이터 처리 
+		if(!util.isNull(repeatKey)){
+			prm.rk = repeatKey;
+		}
+		http.post('/siw/myasset/status/570102/data.do', prm, false).then(function(rsHttp) {
+			deferred.resolve(rsHttp);
+		});
+		return deferred.promise();
+	}
+});
+
+})();

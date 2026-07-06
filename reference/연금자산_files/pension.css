@@ -1,0 +1,411 @@
+@charset "utf-8";
+@import url("wealth-management.css");
+
+/* submain */
+.pensionMain .header{background:none}
+.pensionMain .container{margin-top:105px}
+.pensionMain .contents{width:auto}
+.pensionMain .headTop .topUtil li, .pensionMain .headTop .topUtil li a{color:#49565c}
+.pensionMain .submainBG{overflow:hidden;position:absolute;top:-239px;left:0;width:100%;height:756px}
+.pensionMain .submainBG img{width:100%;min-height:756px}
+.submainTop{position:relative;width:980px;margin:0 auto}
+.submainTop:after{content:"";display:block;clear:both;zoom:1}
+
+.pensionTop{position:relative;float:left;width:645px}
+.pensionTop .slider{height:520px}
+.pensionTop .list li{position:relative;height:520px}
+.pensionTop .list li .tit{margin-bottom:28px;color:#000;font-size:50px;font-weight:600;line-height:60px;letter-spacing:-1px}
+.pensionTop .list li .graphTxt{color:#000;font-size:16px;line-height:26px}
+.pensionTop .list li .graphImg{position:absolute;bottom:0;left:0;}
+.pensionTop .indicator{position:absolute;top:-5px;right:-5px}
+.simulBox{position:relative;float:right;width:251px;height:251px;padding:30px 0 30px 30px;color:#000;border:4px solid #606f87;box-sizing:border-box}
+.simulBox h2{font-size:21px;line-height:30px}
+.simulBox .radArea{margin:20px 0 4px -18px}
+.simulBox .radArea .formWrap{margin:0 0 0 18px}
+.simulBox .formWrap input + label:before{background:url(/siw/common/images/retirement/bg_mainForm.png) no-repeat}
+.simulBox .formWrap input:checked + label:before{background-position:-23px 0}
+.lt-ie8 .simulBox .formWrap input + label:before{background:none}
+.simulBox .selectbox{width:84px}
+.simulBox .selectbox + .unit + .selectbox{width:65px}
+.simulBox .selectbox .tit{font-size:21px;border:none;border-bottom:1px solid #000;letter-spacing:-1px;background:none}
+.simulBox .selectbox .tit > span{margin:0 20px 0 2px}
+.simulBox .selectbox .tit > span:after{right:8px}
+.simulBox .unit{display:inline-block;padding:0 3px 0 0;line-height:32px}
+.simulBox .btn{position:absolute;bottom:20px;right:30px;display:block;padding:5px 12px 5px 5px}
+.simulBox .btn:after{content:'';display:inline-block;position:absolute;top:10px;right:0;width:6px;height:11px;background:url(/siw/common/images/retirement/bg_mainForm.png) no-repeat -46px 0}
+
+.submainCont{position:relative;width:980px;margin:0 auto;box-sizing:border-box}
+.submainCont:after{content:"";display:block;clear:both;zoom:1}
+.submainCont h2{color:#000;font-size:34px;font-weight:600;line-height:1}
+
+.submainCont01{margin-top:50px;padding-top:57px;}
+.submainCont01 h2{position:absolute;top:0;left:0;display:inline-block;padding:0 17px 18px 0;border-bottom:4px solid #000}
+.submainCont01 .prodBox{float:left;width:670px;height:450px;border-bottom:4px solid #000}
+.submainCont01 .prodBox h3{position:relative;display:inline-block;margin:40px 0 20px;padding-right:21px;color:#000;font-size:18px;font-weight:600;line-height:1}
+.submainCont01 .prodBox h3:after{content:'';position:absolute;top:1px;right:0;display:block;width:14px;height:14px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat}
+.submainCont01 .prodBox .list{width:227px;border-bottom:1px solid #444}
+.submainCont01 .prodBox .list li > a{border-top:1px dotted #000}
+.submainCont01 .prodBox .list li:first-child a{border-top:none}
+.submainCont01 .prodBox .list li > a{position:relative;display:table-cell;height:72px;padding:0 20px;line-height:20px;vertical-align:middle}
+.submainCont01 .prodBox .list li.on{margin-bottom:-1px}
+.submainCont01 .prodBox .list li.on > a{font-weight:600;border:1px solid #000}
+.submainCont01 .prodBox .list li.on > a:after{content:'';display:block;position:absolute;top:27px;right:-10px;width:10px;height:19px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat -14px 0}
+.submainCont01 .prodBox .list li .cont{display:none;position:absolute;top:95px;left:310px;width:359px}
+.submainCont01 .prodBox .list li .cont:before{content:'';display:block;position:absolute;top:-45px;left:0;width:55px;height:1px;background:#333}
+.submainCont01 .prodBox .list li .cont .tit{margin-bottom:17px;color:#000;font-size:34px;line-height:41px}
+.submainCont01 .prodBox .list li .cont .txt{margin:37px 0 27px;color:#000}
+.submainCont01 .prodBox .list li .cont .btn{position:relative;display:inline-block;padding-right:53px;color:#666;font-size:13px;line-height:23px}
+.submainCont01 .prodBox .list li .cont .btn:after{content:'';display:block;position:absolute;top:4px;right:0;width:45px;height:13px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat -24px 0}
+.submainCont01 .prodBox .list li.on .cont{display:block}
+.submainCont01 .prodBox .list02{border-bottom:none}
+
+.rankingBox{position:relative;float:right;width:251px;height:644px;margin-top:-192px;padding:40px 33px 0 33px;color:#fff;box-sizing:border-box;background:#3b4353}
+.lt-ie8 .rankingBox{padding:40px 28px 0 28px}
+.rankingBox h3{margin-bottom:30px;font-size:17px;line-height:1;letter-spacing:-1px}
+.rankingBox h3 span{display:inline-block;padding-left:8px;color:#c0c0c0;font-size:13px}
+.rankingBox h3 em{display:block;margin-top:7px;font-size:28px}
+.rankingBox .rankingTab li{float:left;width:50%}
+.rankingBox .rankingTab li a{display:block;height:25px;color:#afb2b6;font-size:13px;border:1px solid #6c727e;line-height:26px;text-align:center;box-sizing:border-box}
+.rankingBox .rankingTab li.on a{color:#3b4353;border:none;background:#fff}
+.rankingBox .tabCont{position:relative}
+.rankingBox .listRanking li{position:relative;padding:29px 0 26px;border-top:1px dotted #c8c8cc}
+.rankingBox .listRanking li:first-child{border-top:none}
+.rankingBox .listRanking li .rank{display:inline-block;overflow:hidden;text-indent:-9999px;width:30px;height:48px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat 0 -19px}
+.rankingBox .listRanking li .rank2{background-position:-30px -19px}
+.rankingBox .listRanking li .rank3{background-position:-60px -19px}
+.rankingBox .listRanking li .tit{overflow:hidden;height:40px;margin-top:14px;font-size:13px}
+.rankingBox .listRanking li .tit a{color:#fff}
+.rankingBox .listRanking li .money{position:absolute;top:43px;right:0;color:#ffd200;font-size:16px;font-weight:600}
+.rankingBox .listRanking li .money strong{font-size:24px}
+.rankingBox .more{position:absolute;bottom:-10px;right:0;display:inline-block;padding:2px 10px 0 0;color:#bbb;font-size:12px;line-height:22px}
+.rankingBox .more:after{content:'';display:block;position:absolute;top:7px;right:0;width:7px;height:7px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat -69px 0}
+
+.submainCont02{margin-top:50px;padding-bottom:50px;border-bottom:4px solid #000;background:url(/siw/common/images/retirement/bg_submain03.jpg) no-repeat 100% 100%}
+.submainCont02 h2{position:absolute;top:-2px;right:0;line-height:41px}
+.submainCont .guideList{display:inline-block;margin-left:-26px}
+.submainCont .guideList li{position:relative;float:left;width:200px;height:210px;padding:0 26px;border-left:1px solid #e2e2e4}
+.submainCont .guideList li:first-child{border-left:none}
+.submainCont .guideList li .tit{margin-bottom:95px;color:#000;font-size:21px;font-weight:bold;line-height:1.1}
+.submainCont .guideList li a{position:relative;display:block;height:100%;color:inherit}
+.submainCont .guideList li a:before{content:'';display:block;position:absolute;top:36px;left:0;width:75px;height:60px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat -90px 0}
+.submainCont .guideList li.guide02 a:before{background-position:-165px 0}
+.submainCont .guideList li.guide03 a:before{background-position:-240px 0}
+.submainCont .guideList li .view:after{content:'';position:absolute;left:0;bottom:0;display:block;width:32px;height:32px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat 0 -67px}
+
+.submainCont03{position:relative;margin-top:50px;padding:123px 0 0 500px}
+.submainCont03 h2{position:absolute;top:0;left:500px;line-height:41px}
+.submainCont03 .guideList{padding-bottom:50px;border-bottom:4px solid #000}
+.submainCont03 .guideList li{height:160px}
+.submainCont03 .guideList li a{display:block}
+.submainCont03 .guideList li a:before{width:75px;height:60px}
+.submainCont03 .guideList li.guide01 a:before{background-position:-90px -60px}
+.submainCont03 .guideList li.guide02 a:before{background-position:-165px -60px}
+.retireWhy{position:absolute;top:0;left:0;width:448px;height:337px;padding:40px;color:#fff;box-sizing:border-box;background:#1598dc url(/siw/common/images/retirement/bg_submain04.jpg) no-repeat 0 100%}
+.retireWhy .tit{padding-bottom:21px;font-size:21px;font-weight:600}
+.retireWhy .txt{margin-bottom:27px}
+.retireWhy .view{position:relative;display:inline-block;padding-right:53px;color:#fff;font-size:13px;line-height:23px}
+.retireWhy .view:after{content:'';display:block;position:absolute;top:4px;right:0;width:45px;height:13px;background:url(/siw/common/images/retirement/bg_mainIco.png) no-repeat -31px -67px}
+
+.tblBox{position:relative;margin-top:15px}
+.tblBtnTR{position:absolute;top:-43px;right:0}
+.pensionExBox{border-top:1px solid #152475;border-bottom:1px solid #152475;background:#f7f8f8}
+.pensionEx{padding:30px 0 30px 140px}
+.pensionEx > .msgMoney{display:table-cell;width:540px;height:125px;padding-left:155px;color:#000;font-size:19px;line-height:1.7;vertical-align:middle;background:url(/siw/common/images/common/bg_msgMoney.png) no-repeat 0 0}
+.msgMoney .inpRate{width:75px;height:29px;margin:-4px 5px 0 10px;padding:0 10px;color:#006bd8;font-size:19px;line-height:1.7;font-weight:600;text-align:right;border-color:#152475;background:#fff}
+.msgMoney .inpLine{max-width:180px;padding:0 10px;color:#152475;font-size:25px;font-weight:600;text-align:center;border:0;border-bottom:1px solid #21307c;background:transparent !important}
+.pensionExView{height:266px;margin:5px;padding:40px 50px;background:#fff}
+.pensionExView:before{content:'';float:left;width:221px;height:266px;margin-right:50px;background:url(/siw/common/images/management/img_pensionMan.gif) no-repeat}
+.pensionExView.male:before{background-position:0 0}
+.pensionExView.female:before{background-position:-170px 0}
+.pensionExView .graphArea{padding-top:7px}
+.pensionEx2{padding:40px 156px 40px 122px;font-size:19px;line-height:1.7 ;text-align:right;background:url(/siw/common/images/management/bg_flowArr.png) no-repeat 50% 50%}
+.pensionEx2 .inpBox{width:225px;height:29px;margin:-4px 5px 0 10px;padding:0 10px;color:#006bd8;font-size:19px;line-height:1.6;font-weight:600;text-align:right;border-color:#152475;background:#fff}
+.pensionEx2 .inpLine{width:202px;padding:0 10px;color:#152475;font-size:25px;font-weight:600;text-align:right;border:0;border-bottom:1px solid #21307c;background:transparent !important}
+.pensionExView2{height:337px;margin:5px;padding:40px;background:#fff}
+
+.boxImage .imgPension01{background-image:url(/siw/common/images/retirement/img_pension01.gif)}
+.boxImage .imgPension02{background-image:url(/siw/common/images/retirement/img_pension02.gif)}
+
+/* 연금자산 */
+.lstDot li{margin-top:4px;padding-left:8px}
+.lstDot li:before{content:'· ';display:inline-block;width:8px;margin-left:-8px}
+.rpType{position:relative;min-height:287px;padding-right:515px}
+.rpType:after{content:'';display:block;clear:both}
+.rpType .typeImg{position:absolute;top:0;right:0}
+.rpMethod{margin-top:15px;width:100%;height:304px;padding:40px 9px;box-sizing:border-box;background:url(/siw/common/images/retirement/img_retirement_method1.gif) 0 0 no-repeat}
+.rpMethod > li{width:33.3%;float:left;padding:0 20px;box-sizing:border-box;text-align:center}
+.rpMethod > li .tit{display:block;color:#000;font-size:25px;font-weight:normal;line-height:1}
+.rpMethod > li .txt{display:block;margin-top:50px;font-size:16px;letter-spacing:-1px}
+.rpMethod > li .lstDot{text-align:left;margin:34px 0 0 18px}
+.rpIntro{position:relative;margin-top:15px;width:100%;height:611px;background:url(/siw/common/images/retirement/img_retirement_intro3.gif) 0 0 no-repeat}
+.rpIntro .intro{position:absolute;bottom:40px;left:0;width:100%}
+.rpIntro .intro > li{width:33.3%;float:left;padding-left:35px;box-sizing:border-box}
+.rpIntro .intro > li .tit{font-size:16px;color:#000}
+.rpIntro .intro > li .tit:after{content:'';display:inline-block;width:188px;height:4px;margin:-2px 0 0 10px;vertical-align:middle;background:#000}
+.rpIntro .intro > li .line1:after{background-color:#798ac3}
+.rpIntro .intro > li .line2:after{background-color:#6196d8}
+.rpIntro .intro > li .line3:after{background-color:#5bb7e6}
+.rpIntro .intro > li .lstDot{margin-top:5px}
+.rpIntro .intro > li .lstDot li{margin-top:0}
+.drsType{position:relative;min-height:280px;margin-top:33px;padding-left:515px}
+.drsType .typeImg{position:absolute;top:-15px;left:0}
+.boxReport.status .title{width:50%;background-image:url(/siw/common/images/retirement/ico_date.gif)}
+.boxReport.status .period{font-size:30px;color:#152475;text-align:right}
+
+/* 은퇴설계 시뮬레이션 */
+.planCon{overflow:hidden;position:relative;height:716px;text-align:center;z-index:1000}
+.planCon .txtArea{position:relative;display:table-cell;height:630px;vertical-align:middle;z-index:3}
+.planCon .homeArea{position:absolute;top:40px;right:-203px;width:650px;height:490px}
+.planCon .homeArea:before{content:'';position:absolute;bottom:-58px;left:-34px;display:block;width:257px;height:300px;background:url(/siw/common/images/retirement/bg_plan_pig.png) -259px 0 no-repeat}
+.planCon .homeArea .obj{position:absolute;background-image:url(/siw/common/images/retirement/bg_plan_obj.png);background-repeat:no-repeat}
+.planCon .homeArea .obj.on{background-position:0 0!important}
+.planCon .homeArea .obj.obj01{top:77px;left:49px;width:395px;height:215px;background-position:0 0} /* 지붕 */
+.planCon .homeArea .obj.obj01.on{background-image:url(/siw/common/images/retirement/bg_plan_obj01.gif)}
+.planCon .homeArea .obj.obj02{top:281px;left:61px;width:59px;height:154px;background-position:0 -217px} /* 작은나무 */
+.planCon .homeArea .obj.obj02.on{background-image:url(/siw/common/images/retirement/bg_plan_obj02.gif)}
+.planCon .homeArea .obj.obj03{top:195px;right:158px;width:89px;height:231px;background-position:-122px -217px;z-index:-1} /* 큰나무 */
+.planCon .homeArea .obj.obj03.on{background-image:url(/siw/common/images/retirement/bg_plan_obj03.gif)}
+.planCon .homeArea .obj.obj04{bottom:200px;left:221px;width:42px;height:17px;background-position:0 -373px} /* 화단1 */
+.planCon .homeArea .obj.obj04.on{background-image:url(/siw/common/images/retirement/bg_plan_obj04.gif)}
+.planCon .homeArea .obj.obj05{bottom:83px;left:201px;width:42px;height:17px;background-position:0 -373px} /* 화단2 */
+.planCon .homeArea .obj.obj05.on{background-image:url(/siw/common/images/retirement/bg_plan_obj05.gif)}
+.planCon .homeArea .obj.obj06{bottom:90px;left:23px;width:241px;height:71px;background-position:-304px -217px;z-index:-1} /* 울타리 */
+.planCon .homeArea .obj.obj06.on{background-image:url(/siw/common/images/retirement/bg_plan_obj06.gif)}
+.planCon .homeArea .obj.obj07{bottom:90px;right:25px;width:241px;height:71px;background-position:-304px -217px;z-index:-1} /* 울타리2 */
+.planCon .homeArea .obj.obj07.on{background-image:url(/siw/common/images/retirement/bg_plan_obj07.gif)}
+.planCon .homeArea .obj.obj08{top:179px;left:231px;width:32px;height:32px;background-position:0 -416px} /* 작은창1 */
+.planCon .homeArea .obj.obj08.on{background-position:-34px -416px!important}
+.planCon .homeArea .obj.obj09{top:244px;left:196px;width:101px;height:50px;background-position:0 -450px} /* 작은창2 */
+.planCon .homeArea .obj.obj09.on{background-image:url(/siw/common/images/retirement/bg_plan_obj09.gif)}
+.planCon .homeArea .obj.obj10{bottom:83px;left:128px;width:71px;height:121px;background-position:-304px -370px} /* 문 */
+.planCon .homeArea .obj.obj10.on{background-image:url(/siw/common/images/retirement/bg_plan_obj10.gif)}
+.planCon .homeArea .obj.obj11{bottom:60px;right:140px;width:120px;height:106px;background-position:-510px -290px} /* 차고 */
+.planCon .homeArea .obj.obj11.on{background-image:url(/siw/common/images/retirement/bg_plan_obj11.gif)}
+.planCon .homeArea .obj.obj12{bottom:5px;right:133px;width:67px;height:78px;background-position:-304px -290px} /* 강아지 */
+.planCon .homeArea .obj.obj12.on{background-image:url(/siw/common/images/retirement/bg_plan_obj12.gif)}
+.planCon .homeArea .obj.obj13{bottom:61px;right:1px;width:134px;height:84px;background-position:-510px -398px} /* 자동차 */
+.planCon .homeArea .obj.obj13.on{background-image:url(/siw/common/images/retirement/bg_plan_obj13.gif)}
+.planCon .homeArea .pig{position:absolute;left:-34px;bottom:-58px;width:257px;height:300px;background:url(/siw/common/images/retirement/bg_plan_pig.png) 0 0 no-repeat}
+.planCon .homeArea .pig.on{background-image:url(/siw/common/images/retirement/bg_plan_pig_on.gif)}
+.planCon .homeArea .pipe{position:absolute;bottom:0;left:192px;width:253px;height:118px;background:url(/siw/common/images/retirement/bg_plan_pipe.png) 0 0 no-repeat}
+.planCon .homeArea .pipe.on{background-image:url(/siw/common/images/retirement/bg_plan_pipe_on.gif)}
+.planCon .charArea{position:absolute;top:232px;right:-6px;width:216px;height:331px;text-align:center}
+.planCon .charArea:before{content:'';position:relative;display:inline-block;width:92px;height:100%;background:url(/siw/common/images/retirement/bg_plan_char.png) -270px 0 no-repeat;z-index:2}
+.planCon .charArea:after{display:inline-block;width:92px;height:100%;margin-left:-24px;background:url(/siw/common/images/retirement/bg_plan_char.png) -370px 0 no-repeat}
+.planCon .charArea.userWoman:before{background-position:-370px 0}
+.planCon .charArea.mateWoman:after{content:'';}
+.planCon .charArea.mateMan:after{content:'';background-position:-270px 0}
+
+.planForm{margin-top:20px}
+.planForm:after{content:'';display:block;clear:both}
+.planForm .bform:before{display:inline-block;vertical-align:middle;background-image:url(/siw/common/images/retirement/bg_plan_form.png)}
+.planForm .check{position:relative;display:inline-block}
+.planForm .check input{position:absolute;top:0;left:0;margin:0;opacity:0;filter:alpha(opacity=0)}
+.planForm .check input:focus+label{outline:1px dotted #000}
+.planForm .check label{position:relative;display:inline-block;font-size:16px;text-align:center;cursor:pointer;box-sizing:border-box}
+.planForm .planType{display:inline-block;border:1px solid #fff;border-radius:2px}
+.planForm .planType .check{display:block;float:left}
+.planForm .planType .check input{width:141px;height:42px}
+.planForm .planType .check label{width:139px;height:40px;line-height:40px}
+.planForm .planType .check.on input+label{color:#152475;background:#fff}
+.planForm .planType .check .bform.couple:before{content:'';width:34px;height:22px;margin:-2px 4px 0 0;background-position:0 -30px}
+.planForm .planType .check .bform.solo:before{content:'';width:20px;height:22px;margin:-2px 4px 0 0;background-position:-40px -30px}
+.planForm .planType .check.on .bform.couple:before{content:' ';background-position:0 0}
+.planForm .planType .check.on .bform.solo:before{content:' ';background-position:-40px 0}
+.planForm .planCheck{margin-top:15px;font-size:16px}
+.planForm .planCheck .txt{margin:0 6px 0 26px}
+.planForm .planCheck .txt:first-child{margin-left:0}
+.planForm .planCheck .check input{width:40px;height:40px}
+.planForm .planCheck .check label{width:38px;height:38px;line-height:34px;border:2px solid #fff;border-radius:50% 50%}
+.planForm .planCheck .check.on label{color:#152475;background:#fff}
+.planForm .planInp{margin-top:20px}
+.planForm .planInp label{display:inline-block;margin-right:20px;font-size:24px}
+.planForm .planInp input{height:44px;margin-top:-5px;color:#000;font-size:30px;line-height:41px;text-align:right;border:0;border-bottom:3px solid #fff;background:none}
+.planForm .planInp span{font-size:19px}
+.planForm .selectbox + .selectbox{margin-left:2px}
+.planForm .selectbox .tit{color:#fff;font-size:20px;border:1px solid #fff;background:none}
+.planForm .selectbox .tit > span{height:44px;margin:0 32px 0 12px;line-height:44px}
+.planForm .selectbox .tit > span:after{top:50%;width:12px;height:7px;margin-top:-4px;background:url(/siw/common/images/retirement/bg_plan_form.png) 0 -55px}
+.planForm .selectbox .maskDiv_wddo{border-color:#fff}
+.planForm .form{display:inline-block;max-width:225px;margin-right:60px;vertical-align:top}
+.planForm .form:before{content:'';display:block;width:48px;height:1px;margin-bottom:18px;background:#000}
+.planForm .form .form_h{display:block;margin-bottom:20px;color:#000;font-size:24px;font-weight:600;line-height:1}
+.planForm .form .form_h:before{content:'';width:22px;height:22px;margin:-4px 5px 0 0;background-position:-64px 0}
+.planForm .form .form_h.woman:before{background-position:-64px -29px}
+.planForm .form .btn{display:inline-block;margin-left:5px;padding:1px 5px 0;color:#000;font-size:12px;font-weight:normal;line-height:21px;letter-spacing:-0.5px;text-align:center;vertical-align:middle;border:1px solid #131a25;border-radius:2px}
+.planForm .form .btn:after{content:'';display:inline-block;width:4px;height:6px;margin-left:10px;vertical-align:middle;background:url(/siw/common/images/common/bg_btn3.png)}
+.planForm .form .btn:hover{background:#ccc;background:rgba(255,255,255,0.2);text-decoration:none}
+.planForm.soloForm .form{max-width:100%}
+.planForm.soloForm .form.mate{display:none}
+
+.planCon .myVal.typeStart .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop00.png)}
+.planCon .myVal.typeStart .homeArea .cmm:after{display:none}
+.planCon .myVal.typeStart .charArea{right:0}
+.planCon .myVal.typeStart .charArea:before{width:126px;background-position:0 0}
+.planCon .myVal.typeStart .charArea:after{width:126px;margin-left:-36px;background-position:-136px 0}
+.planCon .myVal.typeStart .charArea.userWoman:before{content:' ';background-position:-136px 0}
+.planCon .myVal.typeStart .charArea.mateMan:after{content:' ';background-position:0 0}
+.planCon .myVal.type01 .title em{color:#ffef3c}
+.planCon .myVal.type01 .planForm.soloForm .form .planInp{display:inline-block;margin-right:45px}
+.planCon .myVal.type01 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop01.png)}
+.planCon .myVal.type02 .title em{color:#fff959}
+.planCon .myVal.type02 .planInp label{width:210px}
+.planCon .myVal.type02 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop02.png)}
+.planCon .myVal.type03 .title em{color:#fff959}
+.planCon .myVal.type03 .planForm.soloForm .form .planInp + .planInp label{width:251px}
+.planCon .myVal.type03 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop03.png)}
+.planCon .myVal.type04 .title em{color:#f8db18}
+.planCon .myVal.type04 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop04.png)}
+.planCon .myVal.type05 .title em{color:#fff959}
+.planCon .myVal.type05 .planInp label{width:135px}
+.planCon .myVal.type05 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop05.png)}
+.planCon .myVal.type06 .title em{color:#fff959}
+.planCon .myVal.type06 .planForm .form{display:block;max-width:100%}
+.planCon .myVal.type06 .planForm .form+.form{margin-top:20px}
+.planCon .myVal.type06 .planInp label{width:135px}
+.planCon .myVal.type06 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop06.png)}
+.planCon .myVal.type07 .title em{color:#f8db18}
+.planCon .myVal.type07 .planForm .form+.form{width:115px;margin-right:45px}
+.planCon .myVal.type07 .homeArea{background-image:url(/siw/common/images/retirement/bg_plan_prop07.png)}
+
+.planStep{position:relative;width:980px;height:76px;margin:-76px auto 0;box-sizing:border-box;z-index:2000}
+.planStep .myValStep li{width:140px}
+.planStep .myValStep li.start{width:70px}
+.planStep .myValStep li.last{width:70px}
+.planStep .bar{display:none;position:absolute;top:32px;left:0;width:0;height:1px;background:#000;z-index:1}
+.planStep .bar:after{content:'';display:block;position:absolute;top:-38px;right:4px;width:56px;height:38px;background:url(/siw/common/images/retirement/bg_plan_loc.png) no-repeat}
+.planStep .myValStep li .guide{display:none;position:absolute;top:-30px;left:76px;padding:6px 8px;color:#fff;font-size:13px;line-height:16px;background:url(/siw/common/images/common/bg_opacity20.png);box-sizing:border-box}
+.planStep .myValStep li .guide:before{content:'';display:block;position:absolute;top:27px;left:-10px;width:10px;height:9px;background:url(/siw/common/images/retirement/bg_plan_loc.png) -40px -40px no-repeat}
+.planStep .myValStep li+li+li+li+li+li .guide:before{left:auto;right:-10px;background-position:-40px -50px}
+.planStep .myValStep li .guide .btn{position:absolute;top:50%;right:8px;padding:1px 6px 0;margin-top:-11px;color:#fff;font-size:12px;line-height:19px;border:1px solid #fff;border-radius:2px}
+.planStep .myValStep li .guide .btn:after{content:'';display:inline-block;width:4px;height:6px;margin-left:10px;vertical-align:middle;background:url(/siw/common/images/common/bg_btn2.gif)}
+.planStep .myValStep li.step1 .guide{width:300px}
+.planStep .myValStep li.step2 .guide{width:435px}
+.planStep .myValStep li.step3 .guide{width:240px}
+.planStep .myValStep li.step4 .guide{width:238px}
+.planStep .myValStep li.step5 .guide{left:-321px;width:325px}
+.planStep .myValStep li.step6 .guide{left:-294px;width:298px}
+.planStep .myValStep li.last .guide{left:-348px;width:352px}
+.planStep .myValStep li.on .guide{display:block}
+
+.bgArea.plan .bgGround{background-position:150px bottom}
+.planBg .bgColor.bg01{background:#967854}
+.planBg .bgColor.bg02{background:#44a2a6}
+.planBg .bgColor.bg03{background:#8a9c46}
+.planBg .bgColor.bg04{background:#6081ba}
+.planBg .bgColor.bg05{background:#967854}
+.planBg .bgColor.bg06{background:#44a2a6}
+.planBg .bgColor.bg07{background:#8a9c46}
+.planBg .bgColor.bg08{background:#6081ba}
+
+.planCost{overflow:hidden;margin:0 -20px}
+.planCost .type{float:left;width:33.3%;padding:0 20px;box-sizing:border-box}
+.planCost .type h4{display:block;width:100%;height:155px;overflow:hidden;text-indent:-9999px;background-image:url(../images/retirement/bg_plan_cost.gif)}
+.planCost .type h4.type1{background-position:0 0}
+.planCost .type h4.type2{background-position:-188px 0}
+.planCost .type h4.type3{background-position:-376px 0}
+.planCost .type .listType1 li{overflow:hidden;margin-top:5px;padding-bottom:2px;color:#000;border-bottom:1px solid #e2e2e4}
+.planCost .type .listType1 li .h{float:left}
+.planCost .type .listType1 li .d{float:right}
+.planCost .type .listType1 li .d .cost{font-size:19px;color:#006bd8}
+
+td.inpData{padding:0}
+td.inpData .data{width:100%;height:100%;padding:0 5px;border:0;background:none;box-sizing:border-box}
+td.inpData .data:hover,
+td.inpData .data:focus{background:#e4f5ff}
+.tdTit{display:inline-block;width:40px;margin-right:5px;text-align:right}
+
+.planResult{overflow:hidden;text-align:center}
+.planResult .result{float:left;width:370px;height:370px;padding-top:40px;color:#fff;font-size:30px;background:url(../images/retirement/bg_plan_result.gif) 0 0 no-repeat;box-sizing:border-box}
+.planResult .result.stage2{background-position:-370px 0}
+.planResult .result.stage3{background-position:0 -370px}
+.planResult .result.stage4{background-position:-370px -370px}
+.planResult .result.stage5{background-position:0 -740px}
+.planResult .result .rate{display:block;width:156px;margin:0 auto;color:#fcd117;background:url(../images/retirement/bg_plan_rate.gif) 0 90% no-repeat}
+.planResult .result .rate .num{font-size:65px;font-weight:normal;line-height:1.2}
+.planResult .resultInfo{overflow:hidden;height:370px;padding:23px 40px 17px 40px;color:#000;font-size:19px;line-height:40px;border:1px solid #515b6c;border-left:0;box-sizing:border-box}
+.planResult .resultInfo .info_num{display:block;font-size:30px;}
+.planResult .resultInfo .info_num strong{color:#0c69c8;font-size:36px;font-weight:normal}
+.planResult .resultInfo .img{margin-top:10px}
+.planChart{display:table;table-layout:fixed;width:100%}
+.planChart .chart{display:table-cell;padding:25px;font-size:19px;text-align:center;vertical-align:top;border-top:1px solid #152475;border-bottom:1px solid #152475;border-right:1px solid #e2e2e4}
+.planChart .chart .radArea{margin-bottom:20px}
+.planChart .chart .graph{position:relative;display:inline-block;width:285px;height:285px}
+.planChart .chart .graph .grpInfo{position:absolute;top:50%;left:50%;width:137px;height:137px;margin:-68px 0 0 -68px;padding-top:40px;color:#000;font-size:15px;font-weight:bold;line-height:1.2;box-sizing:border-box}
+.planChart .chart .graph .grpInfo .data{display:block;margin-top:5px;font-size:26px}
+.planChart .tblTotal td{font-weight:normal}
+.planSolution{margin-left:-17px}
+.planSolution li{float:left;width:315px;height:348px;margin-left:17px;padding:24px 0;font-size:19px;text-align:center;border:1px solid #a8adb5;box-sizing:border-box}
+.planSolution .label{display:block;width:198px;margin:0 auto 25px;color:#fff;font-size:21px;line-height:66px;text-indent:50px;background:url(../images/retirement/bg_plan_label.gif) 0 0 no-repeat}
+.planSolution .label.type02{background-position:0 -66px}
+.planSolution .label.type03{background-position:0 -132px}
+.planSolution .plan_num{display:block;color:#152475;font-size:16px;text-align:center;line-height:1.2}
+.planSolution .plan_num strong{position:relative;bottom:-2px;font-size:40px}
+.planSolution .plan_txt{margin-top:50px;line-height:28px}
+.planSolution .plan_txt strong{color:#0c69c8}
+
+.boxPlan{overflow:hidden;margin-bottom:40px}
+.boxPlan .planInfo{position:relative;float:left;width:703px;padding:35px 163px 35px 35px;border:1px solid #152475;box-sizing:border-box}
+.boxPlan .planRate{float:left;width:257px;margin-left:20px;padding:35px 18px;font-size:17px;line-height:1;border:1px solid #152475;box-sizing:border-box}
+.boxPlan .infoInp{display:table;width:100%;border-right:1px solid #ccc}
+.boxPlan .infoInp:after{display:none}
+.boxPlan .infoInp li{display:table-cell;padding:0 35px 0 15px;font-size:17px;line-height:1}
+.boxPlan .infoInp li:first-child{padding-left:0}
+.boxPlan .info{position:relative;display:block;margin-top:18px;color:#666;font-size:19px;text-align:right}
+.boxPlan .info .num{margin-right:4px;color:#152475;font-size:36px;line-height:55px}
+.boxPlan .info.rate{width:227px}
+.boxPlan .info.rate:before{content:'';display:block;position:absolute;top:-4px;left:0;width:61px;height:59px;background-image:url(../images/retirement/ico_plan_rate.png)}
+.boxPlan .inp{height:55px;margin-right:4px;color:#152475;font-size:36px;line-height:53px;text-align:right;background:#fff}
+.boxPlan .btnL{position:absolute;top:50%;right:35px;min-width:60px;margin-top:-23px}
+.planList{margin-top:40px}
+.planList .slabel{display:inline-block;width:132px;height:48px;margin-right:18px;color:#fff;font-size:16px;line-height:48px;text-indent:52px;background:url(../images/retirement/bg_plan_label_s.gif) 0 0 no-repeat}
+.planList .slabel.type02{background-position:0 -48px}
+.planList .slabel.type03{background-position:0 -96px}
+.planList > li > .tit{padding:20px;font-size:19px;font-weight:normal}
+.planList > li > .tit:hover{text-decoration:none}
+.planList > li > .tit:after{top:44px}
+.planList > li > .tit .num{color:#006bd8;font-size:30px}
+.planList > li .toggleCont{padding:30px;background:#f4f9fe}
+.planList > li .edit{position:relative;min-height:33px;margin-bottom:-5px}
+.planList > li .edit .h{display:inline-block;width:136px}
+.planList > li .edit .btn{float:right}
+
+.planData{display:table;table-layout:fixed;width:100%;padding:30px 0;background:#515b6c}
+.planData:after{display:none}
+.planData li{display:table-cell;padding:0 30px;color:#fff;font-size:17px;border-left:1px solid #666f7e}
+.planData li:first-child{border-left:0}
+.planData .info{position:relative;display:block;margin-top:18px;font-size:19px;text-align:right}
+.planData .info .num{margin-right:4px;font-size:42px;line-height:55px}
+.planData .info.rate:before{content:'';display:block;position:absolute;top:-4px;left:0;width:61px;height:59px;background-image:url(../images/retirement/ico_plan_rate.png)}
+.planDataGrp{margin:30px -30px}
+.planDataGrp li{float:left;width:50%;padding:0 30px;box-sizing:border-box}
+.planDataGrp .titDep3{margin-top:0}
+.planDataGrp .graph{position:relative;height:296px;padding:40px 60px;border:1px solid #c8c8cc;box-sizing:border-box}
+.planDataGrp .legend{right:50px}
+.planDataGrp .legend span:before{background-image:url(../images/retirement/bg_myplan_graph.gif)}
+
+/* 연금저축 안내 */
+.boxImage .imgAnnAcc1{background-image:url(/siw/common/images/retirement/img_ann_acc1.gif)}
+.boxImage .imgAnnAcc2{background-image:url(/siw/common/images/retirement/img_ann_acc2.gif)}
+.boxImage .imgAnnAcc3{background-image:url(/siw/common/images/retirement/img_ann_acc3.gif)}
+.boxImage .imgAnnAcc4{background-image:url(/siw/common/images/retirement/img_ann_acc4.gif)}
+.boxAnn3 .intro:before{background-image:url(/siw/common/images/retirement/bg_ann_acc3_icon.gif)}
+
+.boxLineup{position:relative;padding:40px 30px 40px 300px;border-top:1px solid #152475;border-bottom:1px solid #152475;box-sizing:border-box;background-color:#f7f8f8;}
+.boxLineup:before{position:absolute;top:20px;left:30px;display:inline-block;content:'';width:290px;height:268px;background:url(/siw/common/images/retirement/img_ann_acc4_prod1.gif) 0 0 no-repeat}
+.boxLineup dt{position:relative;margin:3px 0 16px 60px;color:#152475;font-size:19px}
+.boxLineup dt:before{position:absolute;top:0;left:-30px;display:inline-block;content:'';width:23px;height:20px;background:url(/siw/common/images/retirement/bg_quotes.gif) 0 0 no-repeat}
+.boxLineup dd{margin-left:60px;}
+.boxLineup .txtTop{display:block;margin-bottom:8px;color:#006bd8;font-size:21px;font-weight:600}
+.boxLineup .tit{color:#000;font-size:32px;line-height:44px;font-weight:normal;letter-spacing:-2px}
+.boxLineup .btnView{margin-top:10px}
+.boxImage .imgAccService1{background-image:url(/siw/common/images/retirement/img_acc_service1.gif)}
+
+/* IRP */
+.titDep3 .txtWg{font-weight:normal}
+.irpTitBtn .titDep3{display:inline-block;margin-right:5px}
+.boxImage .imgGuide1{background-image:url(/siw/common/images/retirement/img_irp_guide1.gif)}
+.boxIrpGuide2{overflow:hidden}
+.boxIrpGuide2 .left{float:left}
+.boxIrpGuide2 .right{float:right}
+.boxIrpGuide2 .irpGuide{height:1084px;padding:30px 10px;border:1px solid #c8c8cc;box-sizing:border-box}

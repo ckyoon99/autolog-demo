@@ -1,0 +1,285 @@
+/**
+ * 계좌 상품정보를 가저오는 util
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.25 | 정원영 | 최초생성 |
+ */
+(function (){
+
+si.service('acctGoodsUtil', function($svc) {
+	var log = $svc.logger('acctGoodsUtil');
+	var http = $svc.get('http');
+	var util = $svc.get('util');
+	var lpopup = $svc.get('lpopup');
+	var o = {};
+	
+	o.getAcctGoods = function(acctNo, searchType){
+		
+		var d=$.Deferred();
+		
+		if(util.isNull(acctNo)||util.isEmpty(acctNo)){
+			d.reject();
+			return;
+		}
+		
+		if(util.isNull(searchType)||util.isEmpty(searchType)){
+			d.reject();
+			return;
+		}
+	    var prm = {
+	    	acctNo : acctNo,
+	    	searchType : searchType,
+	    	serviceType : "getAcctGoods"
+	    }
+		http.post('/siw/myasset/details/acctGoodsUtil/data.do', prm, false).then(function(rsHttp) {
+			if(rsHttp.ErrType!='0'){
+				log(rsHttp.errorMsg)
+				d.reject();
+				return;
+			}
+			var result = rsHttp['반복데이타0'];
+			var returnArr = [];
+			
+			_.each(result, function(data, index, dataList){
+				returnArr.push({text:data[0]+' '+data[1], value:data[0]});
+			});
+			d.resolve(returnArr);
+			
+		});
+		return d.promise();
+	}
+	
+	o.getAcctGoods2 = function(acctNo, gubn){
+		
+		var d=$.Deferred();
+		
+		
+		if(util.isNull(gubn)){
+		    //0:전체
+	        //1:주식
+	        //2:증권상품
+	        //3:선물
+			gubn = 0;
+		}
+		if(util.isNull(acctNo)||util.isEmpty(acctNo)){
+			d.reject();
+			return;
+		}
+
+	    var prm = {
+			acctNo : acctNo,
+			serviceType : "getAcctGoods2"
+		}
+		http.post('/siw/myasset/details/acctGoodsUtil/data.do', prm, false).then(function(rsHttp) {
+			if(rsHttp.ErrType!='0'){
+				log(rsHttp.errorMsg)
+				d.reject();
+				return;
+			}
+			var returnArr = [];
+			var goodsCnt = Number(rsHttp['상품갯수']);
+			
+			for(var i=0; i<goodsCnt; i++){
+				var code = rsHttp['상품번호'].substring(i*2, i*2+2);
+				returnArr.push({text:code+' '+o.getLabel(code), value:code});
+			}
+			
+			
+			if(gubn==1){
+				returnArr = _.filter(returnArr, function(data){
+					return data.value.indexOf('0')==0 || data.value.indexOf('2')==0 || data.value.indexOf('7')==0 
+				});
+			}else if(gubn==2){
+				returnArr = _.filter(returnArr, function(data){
+					return data.value.indexOf('2')==0
+				});
+			}else if(gubn==3){
+				returnArr = _.filter(returnArr, function(data){
+					return data.value.indexOf('1')==0
+				});
+			}
+			
+			d.resolve(returnArr);
+			
+		});
+		return d.promise();
+	}
+	o.getLabel = function(input){
+		var labels = '';
+		if("01"==input){
+        	labels = "위탁";
+        }else if("10"==input){
+        	labels = "코스피선물";
+        }else if("11"==input){
+        	labels = "코스닥선물";
+        }else if("20"==input){
+        	labels = "세금우대종합저축";
+        }else if("21"==input){
+        	labels = "일반증권저축";
+        }else if("22"==input){
+        	labels = "근로자증권저축";
+        }else if("23"==input){
+        	labels = "근로자장기저축";
+        }else if("24"==input){
+        	labels = "근로자주식저축";
+        }else if("25"==input){
+        	labels = "세금우대저축";
+        }else if("26"==input){
+        	labels = "근로자우대저축";
+        }else if("27"==input){
+        	labels = "비과세주식저축";
+        }else if("28"==input){
+        	labels = "장기증권저축";
+        }else if("29"==input){
+        	labels = "생계형저축";
+        }else if("40"==input){
+        	labels = "RP";
+        }else if("42"==input){
+        	labels = "CD";
+        }else if("43"==input){
+        	labels = "CP";
+        }else if("50"==input){
+        	labels = "수익증권";
+        }else if("51"==input){
+        	labels = "해외MF";
+        }else if("52"==input){
+        	labels = "국내MF";
+        }else if("60"==input){
+        	labels = "특정금전신탁";
+        }else if("61"==input){
+        	labels = "퇴직신탁";
+        }
+		return labels;
+	}
+	
+	o.getAcctIconClass = function(acctType, onlineYn){
+		var obj = {};
+		
+		if (onlineYn == "Y") {
+			obj.onlineName = '온라인';
+            obj.onlineClassName = 'icoProduct type7' ;
+	    }else{
+	    	obj.onlineName = '';
+            obj.onlineClassName = '' ;
+	    }
+		
+	    switch (acctType) {
+	        case "CMARP" :
+	        case "CMA RP" :
+	            obj.name = 'CMA-RP';
+	            obj.className = 'icoProduct type5' ;
+	            break;
+	        case "Wrap" :
+	        	obj.name = 'WRAP';
+	            obj.className = 'icoProduct type2' ;
+	            break;
+	        case "" :
+	        case "종합계좌" :
+	        	obj.name = '종합';
+	            obj.className = 'icoProduct type1' ;
+	            break;
+	        case "CMAMMF" :
+	        case "CMA MMF" :
+	        	obj.name = 'CMA-MMF';
+	            obj.className = 'icoProduct type4' ;
+	            break;
+	        case "CMAMMW" :
+	        case "CMA MMW" :
+	        	obj.name = 'CMA-MMW';
+	            obj.className = 'icoProduct' ;
+	            break;
+	        case "펀드전용" :
+	        	obj.name = '펀드전용';
+	            obj.className = 'icoProduct type6' ;
+	            break;
+	        case "포인트전용" :
+	        	obj.name = 'S-MORE';
+	            obj.className = 'icoProduct type3' ;
+	            break;
+	        case "S-lite" :
+	        case "S-Lite" :
+	        	obj.name = 'S-Lite';
+	            obj.className = 'icoProduct' ;
+	            break;   
+	        case "은퇴전용" :
+	        	obj.name = '은퇴전용';
+	            obj.className = 'icoProduct type8' ;
+	            break;     
+	        case "스톡옵션전용계좌" :
+	        	obj.name = '스톡옵션';
+	            obj.className = 'icoProduct' ;
+	            break;     
+	        case "ISA" :
+	        	obj.name = 'ISA';
+	            obj.className = 'icoProduct type13' ;
+	            break;     
+	        case "M-Folio" :
+	        	obj.name = 'M-Folio';
+	            obj.className = 'icoProduct type11' ;
+	            break;     
+	        case "해외주식투자펀드" :
+	        	obj.name = '해외펀드';
+	            obj.className = 'icoProduct type10' ;
+	            break;     
+	        case "IRP" :
+	        	obj.name = 'IRP';
+	            obj.className = 'icoProduct type10' ;
+	            break;
+	        case "DC고객" :
+	        	obj.name = 'DC';
+	            obj.className = 'icoProduct type10' ;
+	            break;
+	        case "DC가입자" :
+	        	obj.name = 'DC가입자';
+	            obj.className = 'icoProduct type10' ;
+	            break;
+	        case "퇴직DB" :
+	        	obj.name = '퇴직DB';
+	            obj.className = 'icoProduct type10' ;
+	            break;
+	        case "퇴직DC" :
+	        	obj.name = '퇴직DC';
+	            obj.className = 'icoProduct type10' ;
+	            break;
+	        case "파운트" :
+	        	obj.name = '파운트';
+	            obj.className = 'icoProduct type15' ;
+	            break; 
+	        case "디렉셔널" :
+	        	obj.name = '디렉셔널';
+	            obj.className = 'icoProduct type15' ;
+	            break; 
+	        case "연금저축전용" :
+	        	obj.name = '연금저축전용';
+	            obj.className = 'icoProduct type16' ;
+	            break;
+	        case "처음ISA" :
+	        	obj.name = '처음ISA';
+	            obj.className = 'icoProduct type13' ;
+	            break;
+	        case "조각투자" :
+	        	obj.name = '조각투자';
+	            obj.className = 'icoProduct type20' ;
+	            break;
+	        case "RIA" :
+	        	obj.name = 'RIA';
+	            obj.className = 'icoProduct type1' ;
+	            break;
+	        case "국민성장펀드" :
+	        	obj.name = '국민성장펀드';
+	            obj.className = 'icoProduct type1' ;
+	            break;
+	        default :
+	        	obj.name = '';
+            	obj.className = 'icoProduct' ;
+	            break;
+	    }
+		
+	    return obj;
+	}
+	
+	return o;
+});
+
+})();

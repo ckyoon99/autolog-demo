@@ -1,0 +1,15 @@
+# Eclipse 관련 파일
+.metadata/
+.settings/
+.classpath
+.project
+
+# 빌드 결과물 및 패키지 매니저
+bin/
+build/
+target/
+*.class
+
+# 로그 파일
+logs/
+*.log

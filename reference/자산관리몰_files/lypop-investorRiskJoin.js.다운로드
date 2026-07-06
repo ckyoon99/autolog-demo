@@ -1,0 +1,407 @@
+/**
+ * 부적합(부적정)금융투자상품 거래내용 확인 - 팝업
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2016.05.11 | 박호원 | 최초생성 |
+ * | 2025.12.24 | 윤지명 | 표준투자권유준칙_E/DLS 목표시장 미부합 케이스 추가 |
+ */
+(function (){
+
+si.controller('layerInvestorRiskJoin', function($vo, $svc){
+	var log = $svc.logger('layerInvestorRiskJoin');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+	var $sign = $svc.get('$sign');
+	
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+	$vo.vl.viewCheck        = ko.observable(true);
+	$vo.vl.s0               = ko.observable('');
+	$vo.vl.s1               = ko.observable('');
+	$vo.vl.s2               = ko.observable('');
+	$vo.vl.s3_1             = ko.observable('');
+	$vo.vl.s3_2             = ko.observable('');
+	$vo.vl.s3_3             = ko.observable('');
+	$vo.vl.s3_4             = ko.observable('');
+	$vo.vl.s4_1_1           = ko.observable('');
+	$vo.vl.s4_1_2           = ko.observable('');
+	$vo.vl.s4_1_3           = ko.observable('');
+	$vo.vl.s4_1_4           = ko.observable('');
+	$vo.vl.s4_1_5           = ko.observable('');
+	$vo.vl.s4_2             = ko.observable('');
+	$vo.vl.s4_1_total       = ko.observable('');
+	$vo.vl.s5               = ko.observable('');
+	$vo.vl.s6               = ko.observable('');
+	$vo.vl.s7               = ko.observable('');
+	$vo.vl.s8               = ko.observable('');
+	$vo.vl.s9               = ko.observable('');
+	$vo.vl.s10              = ko.observable('');
+	$vo.vl.investorType     = ko.observable('');
+	$vo.vl.juminNo			 = ko.observable('');
+
+	 
+	// 변수관리
+	// ==================================================
+	lc.param = lpopup.getParam($vo);
+	
+	//성명
+	$vo.vl.name = lc.param['계좌명'];
+	$vo.vl.gradVisible = lc.param['등급표기여부'];		//등급표기여부
+	$vo.vl.custInvtGrad = lc.param['일반투자성향명']; 	//투자자성향(일반)
+	$vo.vl.drvInvtGrad = lc.param['파생투자성향명'] + ' (' + lc.param['파생투자성향등급'] + ' 등급)'; 	//투자자성향(파생)
+	
+	//목표시장 부합여부
+	$vo.vl.isElsObjtMrktSutYn  = ko.observable(lc.param.isElsObjtMrktSutYn || false);	//나의투자성향_원금보존추구여부
+	$vo.vl.elsObjtMrktState 		= ko.observable('');	//목표시장부적합구분값
+	$vo.vl.investorpreferPrincipal 	= ko.observable('');	//나의투자성향_원금보존추구여부
+	$vo.vl.investorLossTolName 		= ko.observable('');	//나의투자성향_손실감내수준
+	$vo.vl.investorInvtTermName 	= ko.observable('');	//나의투자성향_투자기간
+	$vo.vl.invtTermName				= ko.observable('');	//투자기간목표시장적합여부명
+	$vo.vl.lossTolName 				= ko.observable('');	//손실감내목표시장적합여부명
+	
+	//상품리스트
+	$vo.vl.productList = ko.observableArray([]);
+	
+	if (!_.isUndefined(lc.param.productList) && _.isArray(lc.param.productList)) {
+		//상품 다건 처리
+		_.each(lc.param.productList, function(v, k) {
+			//console.log("v: ", v);
+			var productDesc = v['금융투자상품명'];
+			if (v['금융투자상품코드'] && v['금융투자상품코드'] != 'X') {
+				productDesc += ' (' + v['금융투자상품코드'] + ')';
+			}
+			var product = {
+				productDesc : productDesc,	//상품명
+				riskTpDesc : v['일반위험등급명'] + ' ' + v['일반위험등급'],					//투자위험도
+				drvYn : v['파생상품여부'] == 'Y' ? 'YES' : 'NO',
+				chkProductAgree : ko.observable(false),													//금융투자상품 확인 체크
+				chkProductAgreeFocus : ko.observable(false)	
+			};
+			$vo.vl.productList.push(product);
+		});
+	} else {
+		//상품 1건
+		var productDesc = lc.param['금융투자상품명'];
+		if (lc.param['금융투자상품코드'] && lc.param['금융투자상품코드'] != 'X') {
+			productDesc += ' (' + lc.param['금융투자상품코드'] + ')';
+		}
+		$vo.vl.productList.push({
+			productDesc : productDesc,	//상품명
+			riskTpDesc : lc.param['일반위험등급명'] + ' ' + lc.param['일반위험등급'] ,		//투자위험도
+			drvYn : lc.param['파생상품여부'] == 'Y' ? 'YES' : 'NO',
+			chkProductAgree : ko.observable(false),														//금융투자상품 확인 체크
+			chkProductAgreeFocus : ko.observable(false)
+		});
+		
+		//상품 2건 (ETN/ETN 통합인경우: 엠폴리오 R-PLAN 서비스신청) 2017.10.25
+		if (!_.isUndefined(lc.param['금융투자상품명2'])) {
+			productDesc = lc.param['금융투자상품명2'];
+			$vo.vl.productList.push({
+				productDesc : productDesc,	//상품명
+				riskTpDesc : lc.param['일반위험등급명2'] + ' ' + lc.param['일반위험등급2'],	//투자위험도
+				drvYn : lc.param['파생상품여부'] == 'Y' ? 'YES' : 'NO',
+				chkProductAgree : ko.observable(false),													//금융투자상품 확인 체크
+				chkProductAgreeFocus : ko.observable(false)
+			});
+		}
+	}
+	
+	//고객확인사항 확인
+	$vo.vl.chkCustAgree = ko.observable(false);
+	$vo.vl.chkCustAgreeFocus = ko.observable(false);
+	
+	//적정성 적합성 확인
+	$vo.vl.chkAdeAgree = ko.observable(false);
+	$vo.vl.chkAdeAgreeFocus = ko.observable(false);
+	
+	//호출구분
+	//투자자 정보 수정시 기존 가입되어 있는 상품에 의해 부적합 확인되는 경우 (주민번호만 노출)
+	//투자성향 보다 높은 등급의 상품을 신규 가입하는 경우 (투자성향, 고객정보 노출)
+	$vo.vl.isRiskJoinRegType = ko.observable(false);
+	if(lc.param['callType'] && lc.param['callType'] == 'info') {
+		$vo.vl.isRiskJoinRegType(true);
+	}
+	
+	// 이벤트 함수 관리
+	// ==================================================
+	//확인
+	$vo.on.okPop = function() {
+		//금융투자상품 확인
+		/*for (var i = 0; i < $vo.vl.productList().length; i++) {
+			var product = $vo.vl.productList()[i];
+			if (!product.chkProductAgree()) {
+				lpopup.alert("금융투자상품 정보를 확인해 주세요.").then(function() {
+					product.chkProductAgreeFocus(true);
+				});
+				return false;
+			}
+		}*/
+		
+		//고객확인사항 확인
+		if (!$vo.vl.chkCustAgree()) {
+			lpopup.alert("고객확인사항을 확인해 주세요.").then(function() {
+				$vo.vl.chkCustAgreeFocus(true);
+			});
+			return false;
+		}
+		//적정성 적합성 확인
+		if (!$vo.vl.chkAdeAgree()) {
+			lpopup.alert("적정성/적합성 판단 보고서를 확인해 주세요.").then(function() {
+				$vo.vl.chkAdeAgreeFocus(true);
+			});
+			return false;
+		}
+		
+		$vo.on.doRegist(); //전자서명
+	};
+	
+	//전자서명
+	$vo.on.doRegist = function(){
+		$sign.gmsCertNeSign({}).then(function(signData) {
+			if(!signData){
+				return;
+			}
+			//확인
+			lpopup.close($vo, {
+				result: true,
+				routerYn: "N"
+			});
+		});
+	};
+	
+	//닫기
+	$vo.on.closePop = function() {
+		lpopup.close($vo);
+	};
+
+	//가입중단
+	$vo.on.moveList = function() {
+		lpopup.close($vo, {
+			routerYn: "Y"
+		});
+	};
+	
+	// 지역함수
+	// ==================================================
+	function resultToText(param,name){
+		if ("s0" == name){
+			//연령
+			if("1" == param) return "19세 미만" 
+			if("2" == param) return "19세 이상 ~ 35세 미만" 
+			if("3" == param) return "35세 이상 ~ 50세 미만" 
+			if("4" == param) return "50세 이상 ~ 65세 미만" 
+			if("5" == param) return "65세 이상 ~ 80세 미만" 
+			if("6" == param) return "80세 이상 ~" 
+		}
+		if ("s1" == name){
+			//총자산규모
+			if("1" == param) return "1억원 미만" 
+			if("2" == param) return "1억원 이상 ~ 5억원 미만" 
+			if("3" == param) return "5억원 이상 ~ 10억원 미만" 
+			if("4" == param) return "10억원 이상 ~ 20억원 미만" 
+			if("5" == param) return "20억원 이상" 
+		}
+		if ("s2" == name){
+			//연간소득현황
+			if("1" == param) return "2천만원 미만" 
+			if("2" == param) return "2천만원 이상 ~ 5천만원 미만" 
+			if("3" == param) return "5천만원 이상 ~ 7천만원 미만" 
+			if("4" == param) return "7천만원 이상 ~ 1억 미만" 
+			if("5" == param) return "1억 이상" 
+		}
+		if ("s3_1" == name){
+			//재산현황 보장성
+			if("1" == param) return "0%~9%" 
+			if("2" == param) return "10%~19%" 
+			if("3" == param) return "20%~29%" 
+			if("4" == param) return "30%~49%" 
+			if("5" == param) return "50% 이상" 
+		}
+		if ("s3_2" == name){
+			//재산현황 투자성
+			if("1" == param) return "0%~9%" 
+			if("2" == param) return "10%~19%" 
+			if("3" == param) return "20%~29%" 
+			if("4" == param) return "30%~49%" 
+			if("5" == param) return "50% 이상" 
+		}
+		if ("s3_3" == name){
+			//재산현황 대출성
+			if("1" == param) return "0%~9%" 
+			if("2" == param) return "10%~19%" 
+			if("3" == param) return "20%~29%" 
+			if("4" == param) return "30%~49%" 
+			if("5" == param) return "50% 이상" 
+		}
+		if ("s3_4" == name){
+			//재산현황 기타
+			if("1" == param) return "0%~9%" 
+			if("2" == param) return "10%~19%" 
+			if("3" == param) return "20%~29%" 
+			if("4" == param) return "30%~49%" 
+			if("5" == param) return "50% 이상" 
+		}
+		if ("s4_2" == name){
+			//금융상품 투자경험 기간
+			if("" == param) return " 투자경험 없음" 
+			if("1" == param) return "1년 미만" 
+			if("2" == param) return "1년 이상 ~ 3년 미만" 
+			if("3" == param) return "3년 이상" 
+		}
+		if ("s4_1_1" == name){
+			//금융상품 투자경험 
+			if(param) return "국채, 지방채, 보증채, MMF 등" 
+			else return ""
+		}
+		if ("s4_1_2" == name){
+			//금융상품 투자경험 
+			if(param) return "금융채, 신용도가 높은 회사채, 채권형펀드, E/DLB 등" 
+			else return ""
+		}
+		if ("s4_1_3" == name){
+			//금융상품 투자경험 
+			if(param) return "신용도 중간 등급의 회사채, 원금의 부분지급형 E/DLS, 혼합형 펀드 등" 
+			else return ""
+		}
+		if ("s4_1_4" == name){
+			//금융상품 투자경험 
+			if(param) return "국내주식, 신용도가 낮은 회사채, 원금이 비보장형 E/DLS, 주식형 펀드 등" 
+			else return ""
+		}
+		if ("s4_1_5" == name){
+			//금융상품 투자경험 
+			if(param) return "선물옵션, 레버리지를 사용하는 주식형 펀드, 파생상품 펀드, 주식 신용거래, ELW 등" 
+			else return ""
+		}
+		if ("s5" == name){
+			//적정성원칙 대상 상품 투자경험
+			if("1" == param) return "1년 미만(경험없음)" 
+			if("2" == param) return "1년 이상 ~ 3년 미만" 
+			if("3" == param) return "3년 이상" 
+		}
+		if ("s6" == name){
+			//금융지식 수준 / 이해도
+			if("1" == param) return "금융투자상품에 투자해 본 경험이 없음" 
+			if("2" == param) return "널리 알려진 금융투자상품(주식 , 채권 및 펀드 등)의 구조 및 위험을 일정 부분 이해하고 있음" 
+			if("3" == param) return "널리 알려진 금융투자상품(주식 , 채권 및 펀드 등)의 구조 및 위험을 깊이 있게 이해하고 있음" 
+			if("4" == param) return "파생상품을 포함한 대부분의 금융투자상품의 구조 및 위험을 이해하고 있음" 
+		}
+		if ("s7" == name){
+			//취득 및 처분 목적
+			if("1" == param) return "자산증식" 
+			if("2" == param) return "주택마련" 
+			if("3" == param) return "생활비" 
+			if("4" == param) return "교육비" 
+			if("5" == param) return "채무상환" 
+			if("6" == param) return "결혼자금" 
+			
+		}
+		if ("s8" == name){
+			//투자 목적
+			if("1" == param) return "투자 수익을 고려하나 원금 보존이 더 중요" 
+			if("2" == param) return "원금 보존을 고려하나 투자 수익이 더 중요" 
+			if("3" == param) return "손실 위험이 있더라도 투자 수익이 중요" 
+		}
+		if ("s9" == name){
+			//투자예정기간
+			if("1" == param) return "1년 미만" 
+			if("2" == param) return "1년 이상 ~ 2년 미만" 
+			if("3" == param) return "2년 이상 ~ 3년 미만" 
+			if("4" == param) return "3년 이상 ~ 5년 미만" 
+			if("5" == param) return "5년 이상" 
+		}
+		if ("s10" == name){
+			//기대수익 및 손실감내도
+			if("1" == param) return "원금보존 추구" 
+			if("2" == param) return "10% 이내 손실 감내가능" 
+			if("3" == param) return "20% 이내 손실 감내가능" 
+			if("4" == param) return "50% 이내 손실 감내가능" 
+			if("5" == param) return "70% 이내 손실 감내가능" 
+			if("6" == param) return "전액 손실 감내가능" 
+		}
+
+	}
+	//"Y" --> ture, "N" --> false
+	function strToBool(str) {
+		if(str=="Y") return true;
+		else return false;
+	}
+	//ture --> "Y",  false--> "N"
+	function boolToStr(bol, gubn) {
+		if(util.isNull(gubn)){
+			if(bol)return "Y";
+			else return "N";
+		}else{
+			if(bol)return "1";
+			else return "0";
+		}
+	}
+	function makeS4Total (param1,param2,param3,param4, param5 ){
+		var result = "없음";
+		if (param1 != "") result = param1 
+		if (param2 != "") result = param2
+		if (param3 != "") result = param3 
+		if (param4 != "") result = param4
+		if (param5 != "") result = param5
+		
+		return result; 
+	}
+	// 적정성/적합성 판단보고서의 투자정보 확인서 응답결과 조회
+	function init() {
+		http.post("/siw/banking-lending/customer-info/investorRiskJoin/data.do", {}, false).then(function(rsHttp) {
+			// 개인/법인 구분 조회
+			if (rsHttp.result){
+				$vo.vl.investorType(rsHttp.개인법인구분);
+				if(rsHttp.개인법인구분 == '1'){
+					$vo.vl.juminNo(lc.param['주민번호'].substring(0, 6) + "-*******");
+				}
+			}
+			
+			if("" != lc.param.문항별응답결과숨김처리 && lc.param.문항별응답결과숨김처리 ){
+				$vo.vl.viewCheck(false);
+			} else {
+				if(rsHttp.result) {
+					$vo.vl.s0(resultToText(rsHttp["연령구분코드"], "s0"));
+					$vo.vl.s1(resultToText(rsHttp["버전2투자성향답변내용1"], "s1"));
+					$vo.vl.s2(resultToText(rsHttp["버전2투자성향답변내용2"], "s2"));
+					$vo.vl.s3_1(resultToText(rsHttp["버전2투자성향답변내용31"], "s3_1"));
+					$vo.vl.s3_2(resultToText(rsHttp["버전2투자성향답변내용32"], "s3_2"));
+					$vo.vl.s3_3(resultToText(rsHttp["버전2투자성향답변내용33"], "s3_3"));
+					$vo.vl.s3_4(resultToText(rsHttp["버전2투자성향답변내용34"], "s3_4"));
+					$vo.vl.s4_1_1(resultToText(strToBool(rsHttp["버전2투자성향답변내용41"].substr(0, 1)), "s4_1_1"));
+					$vo.vl.s4_1_2(resultToText(strToBool(rsHttp["버전2투자성향답변내용41"].substr(1, 1)), "s4_1_2"));
+					$vo.vl.s4_1_3(resultToText(strToBool(rsHttp["버전2투자성향답변내용41"].substr(2, 1)), "s4_1_3"));
+					$vo.vl.s4_1_4(resultToText(strToBool(rsHttp["버전2투자성향답변내용41"].substr(3, 1)), "s4_1_4"));
+					$vo.vl.s4_1_5(resultToText(strToBool(rsHttp["버전2투자성향답변내용41"].substr(4, 1)), "s4_1_5"));
+					$vo.vl.s4_1_total(makeS4Total($vo.vl.s4_1_1(), $vo.vl.s4_1_2(), $vo.vl.s4_1_3(), $vo.vl.s4_1_4(), $vo.vl.s4_1_5()));
+					$vo.vl.s4_2(resultToText(rsHttp["버전2투자성향답변내용42"], "s4_2"));
+					$vo.vl.s5(resultToText(rsHttp["버전2투자성향답변내용5"], "s5"));
+					$vo.vl.s6(resultToText(rsHttp["버전2투자성향답변내용6"], "s6"));
+					$vo.vl.s7(resultToText(rsHttp["버전2투자성향답변내용7"], "s7"));
+					$vo.vl.s8(resultToText(rsHttp["버전2투자성향답변내용8"], "s8"));
+					$vo.vl.s9(resultToText(rsHttp["버전2투자성향답변내용9"], "s9"));
+					$vo.vl.s10(resultToText(rsHttp["버전2투자성향답변내용10"], "s10"));
+				}
+			}
+			
+			// E/DLS고난도상품 목표시장 미부합 케이스 추가
+			if(lc.param.isElsObjtMrktSutYn){
+				$vo.vl.elsObjtMrktState(lc.param['elsObjtMrktState']);	//목표시장부적합구분값
+				$vo.vl.invtTermName(lc.param['invtTermName']);	//투자기간목표시장적합여부명
+				$vo.vl.lossTolName(lc.param['lossTolName']);	//손실감내목표시장적합여부명
+				$vo.vl.investorpreferPrincipal(lc.param['investorpreferPrincipal']);//나의투자성향_원금보존추구여부
+				$vo.vl.investorLossTolName(lc.param['investorLossTolName']);		//나의투자성향_손실감내수준
+				$vo.vl.investorInvtTermName(lc.param['investorInvtTermName']);		//나의투자성향_투자기간
+				
+				$vo.vl.viewCheck(false);
+			}
+		}, function(error) {
+		});			
+	}
+	
+	init();
+});
+
+})();

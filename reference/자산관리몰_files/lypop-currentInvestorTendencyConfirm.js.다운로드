@@ -1,0 +1,115 @@
+/**
+ * 현재 투자자 성향 동일여부 확인 - 팝업
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2025.12.09 | 이호준 | 최초생성 |
+ */
+(function (){
+si.util.load('/siw/common/biz/common','lypop-investorInfo.js');
+	
+si.controller('layerCurrentInvestorTendencyConfirm', function($vo, $svc){
+	var log = $svc.logger('layerCurrentInvestorTendencyConfirm');
+	var lpopup = $svc.get('lpopup');
+	var http = $svc.get('http');
+		
+	var lc = {};
+	$vo.vl = {};
+	$vo.on = {};
+	$vo.vl.name = ko.observable('');
+	$vo.vl.investmentPurpose = ko.observable('');
+	$vo.vl.preservationPrincipalAttitude = ko.observable('');
+	$vo.vl.investmentPeriod = ko.observable('');
+	$vo.vl.lossToleranceLevel = ko.observable('');
+	$vo.vl.investmentRecommendation = ko.observable('');
+	$vo.vl.investorInfoOffer = ko.observable('');
+	
+	// 이벤트 함수 관리
+	// ==================================================
+	$vo.on.clickNotSame =  function(){
+		lpopup.open('layerInvestorInfo', '/siw/common/biz/common/lypop-investorInfo.html', {
+			iscurrentInvestorTendency: true,
+		}).then(function(data) {
+			if (data != undefined && data.result) {
+				lpopup.close($vo, {
+					result: true
+				});
+			} else if (data == undefined) {
+				return;
+			} else {
+				lpopup.close($vo, {
+					result: false
+				});
+			}
+		});
+    };
+    
+    $vo.on.clickSame = function(){
+        lpopup.close($vo, {
+			result: false
+		});
+    };
+    
+	// 지역함수
+	// ==================================================
+	function init() {
+		http.post("/siw/common/lypop-currentInvestorTendencyConfirm/data.do", {}).then(function(data) {
+			$vo.vl.name(data.계좌명);
+			$vo.vl.investmentPurpose(resultToText(data.investorType, data.버전2투자성향답변내용7, "s7"));
+			$vo.vl.preservationPrincipalAttitude(resultToText(data.investorType, data.버전2투자성향답변내용8, "s8"));
+			$vo.vl.investmentPeriod(resultToText(data.investorType, data.버전2투자성향답변내용9, "s9"));
+			$vo.vl.lossToleranceLevel(resultToText(data.investorType, data.버전2투자성향답변내용10, "s10"));
+			$vo.vl.investmentRecommendation(resultToText(data.investorType, data.투자권유희망여부, "investmentRecommendation"));
+			$vo.vl.investorInfoOffer(resultToText(data.investorType, data.정보제공동의여부, "investorInfoOffer"));
+		});
+	}
+	
+	function resultToText(investorType, param, name){
+		if (name == "s7"){
+			if (investorType == '2') {
+				//취득 및 처분 목적
+				if(param == "1") return "자산증식"
+				if(param == "2") return "운영자금"
+				if(param == "3") return "채무상환" 
+				if(param == "4") return "기타" 
+			} else {
+				//취득 및 처분 목적
+				if(param == "1") return "자산증식"
+				if(param == "2") return "주택마련"
+				if(param == "3") return "생활비" 
+				if(param == "4") return "교육비" 
+				if(param == "5") return "채무상환"
+			}
+		} else if (name == "s8"){
+			//투자 목적
+			if(param == "1") return "투자 수익을 고려하나 원금 보존이 더 중요" 
+			if(param == "2") return "원금보존을 고려하나 투자수익 추구 또는 손실위험이 있더라도 투자수익 추구" 
+			if(param == "3") return "손실 위험이 있더라도 투자 수익이 중요" 
+		} else if (name == "s9"){
+			//투자예정기간
+			if(param == "1") return "1년 미만" 
+			if(param == "2") return "1년 이상 ~ 2년 미만" 
+			if(param == "3") return "2년 이상 ~ 3년 미만" 
+			if(param == "4") return "3년 이상 ~ 5년 미만" 
+			if(param == "5") return "5년 이상" 
+		} else if (name == "s10"){
+			//기대수익 및 손실감내도
+			if(param == "1") return "원금보존 추구" 
+			if(param == "2") return "10% 이내 손실 감내가능" 
+			if(param == "3") return "20% 이내 손실 감내가능" 
+			if(param == "4") return "50% 이내 손실 감내가능" 
+			if(param == "5") return "70% 이내 손실 감내가능"
+			if(param == "6") return "전액 손실 감내가능" 
+		} else if (name == "investmentRecommendation") {
+			if (param == "Y") return "희망함"
+			if (param == "N") return "희망하지 않음"
+		} else if (name == "investorInfoOffer") {
+			if (param == "Y") return "제공"
+			if (param == "N") return "제공하지 않음"
+		}
+	}
+	
+	init();
+});
+
+})();

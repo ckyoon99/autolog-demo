@@ -1,0 +1,176 @@
+/**
+ * Screen: 투자정보> 기업/산업분석> 기업 (API)(gicompanyanalyst)
+ * Author: 전희진
+ * Desc: 
+ * WR: WR27219-DP1(2026-04-06) 비로그인 권한으로 변경
+ */
+(function(){
+	si.main(function($vo,$svc){
+		var log = $svc.logger('gicompanyanalyst.js');
+		var bbs   = $svc.get('bbs');
+		var util  = $svc.get('util');
+		var http  = $svc.get('http');
+		var location = $svc.get('location');
+		var loading  = $svc.get('uiLoading');
+		var lpopup = $svc.get('lpopup');
+		var wpopup = $svc.get('wpopup');
+	
+		var lc = {}; // 로컬변수
+		$vo.vl = {};
+		$vo.on = {};
+		$vo.fn = {};
+		
+		lc.curPage    = 1;
+		lc.startPage  = 1;
+		lc.startId    = '';
+		lc.totalCount = '';
+		lc.messageId  = '';
+		//=====================================================
+		lc.param = si.getParam();
+		//======================================================
+		// 변수 바인딩
+		$vo.vl.boardList      = ko.observableArray([]); 		 //게시판 글 리스트
+		$vo.vl.pageInfo       = ko.observable(""); 				 //페이지정보
+		$vo.vl.BBS_TotalCount = ko.observable(""); 				 //총 글수
+		$vo.vl.today		  = ko.observable(lc.param['today']);//오늘날짜
+		$vo.vl.newButton	  = ko.observable("");               //오늘날짜
+		$vo.vl.latestDateFormatted	  = ko.observable("");       //최신글날짜
+		$vo.vl.pdf                    = ko.observableArray([]);  //pdf
+		$vo.vl.isLogin                = ko.observable(lc.param['isLogin']);       //로그인여부 
+		// ==================================================		
+
+		//--------------------------------------------------------------------------
+		//오른쪽 슬라이드 영역 - 리서치 탐색기 처리
+		$(document).on('click', '#aside>a', function() {
+			log("리서치 탐색기 클릭!!!!");
+			var options = {
+				width: '987',
+				height: '890'
+			};
+			$svc.get('wpopup').open('/siw/insights/research/list/view-popup.do', 'research', {}, options);
+		});
+		//--------------------------------------------------------------------------
+		
+		// 더보기
+		$vo.on.addBoardList = function(){
+			lc.curPage++;
+			lc.startPage++;
+			$vo.fn.getBbsData();
+		};
+		
+		// BBS연동부분
+		$vo.fn.getBbsData = function(param){
+			
+			log(lc.curPage);
+			log(lc.startPage);
+			
+			var param = {
+					curPage : lc.curPage,
+					startPage : lc.startPage,
+			};
+			
+			if('' != lc.startId) param.startId = lc.startId;
+			
+			log(param);
+			
+			loading.on();
+			bbs.get('/bbs/list/gicompanyanalyst',param).then(function(data){
+
+				log('★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★');
+				log(data);
+
+				if(data['list'] && data['list'].length > 0){
+					
+					//페이지 정보확인
+					var pageInfo = data.pageInfo;
+					var pages    = pageInfo['pages'];
+					//다음 읽어올 페이지 정보가 있다면 startId를 Setting 한다.
+					if(1 < pages.length)lc.startId = pages[1];
+					$vo.vl.BBS_TotalCount(data['BBS_TotalCount']);
+					
+					//LIST화면 데이터 구성
+					_.each(data['list'], function(v){
+						$vo.vl.boardList().push(v);
+						$vo.vl.pdf().push(v.f3);
+					});
+					$vo.vl.boardList(_.flatten($vo.vl.boardList()));
+					
+					//최신글날짜 
+					log("최신글 날짜 = ",$vo.vl.boardList()[0].f0);
+					var y = $vo.vl.boardList()[0].f0.substring(0,4);
+					var m = $vo.vl.boardList()[0].f0.substring(5,7);
+					var d = $vo.vl.boardList()[0].f0.substring(8,10);
+					//최신글날짜 . 제거 
+					$vo.vl.latestDateFormatted(y+m+d); // yyyyMMdd 최신글날짜
+					
+					
+					log($vo.vl.boardList());
+					log($vo.vl.boardList().length);
+					///////////////////////////////////////////////////////////////
+					//다음 읽어올 데이터가 있는지 확인한다.
+					lc.loopCount = lc.loopCount -1;
+					if(lc.loopCount > 0){
+						lc.curPage++;
+						lc.startPage++;
+						$vo.fn.getBbsData();
+					}
+					if((lc.looCount||0) == 0){
+						loading.off();
+					}
+					//상세에서 돌아온 상태이면서 더보기 이벤트가 종료되었으면 상세로 보냈던 항목 focus를 다시준다.
+					if(lc.param['curPage'] && lc.loopCount == 0){
+						
+						if(''!=lc.param['curIdx'])$('#num'+lc.param['curIdx']).focus();
+						
+					}
+				}
+			});
+		};
+		
+		//상세 페이지 이동
+		$vo.on.goToViewPage=function(idx){
+			
+			var param = {
+				boardName   : 'gicompanyanalyst',
+				messageId   : this.fn,
+				curPage     : lc.curPage,
+				curIdx   	: idx
+			};
+			location.go("/siw/insights/industry/gicompanyanalyst_view/view.do", param);
+		}
+		
+		//첨부파일
+		$vo.on.ckeckPdf = function(index,e){
+			log("index-->", index);
+			if(_.isEmpty(index.f10)){
+				lpopup.alert("첨부파일이 없습니다.").then(function(){
+					$(e.target).focus();
+				});
+			}else{
+				var openPdf = window.open(index.f10, '','width=737, height=1000,  scrollbars=no, resizable=yes');
+				return openPdf;
+			}
+		}
+		
+		init();
+		
+		function init() {
+			//메뉴링크를 통해서 온경우 loopCount를 1로 셋팅, 
+			//상세에서 온경우 loopCount를 CurPage Count로 셋팅하여 CurPage Count만큼 looping 한다. 
+			if(''==lc.param['curPage']){
+				//1. list 페이지에서 -> 상세페이지로 이동 (curPage)
+				lc.loopCount = 1;
+				lc.curPage = 1;
+				lc.startPage = 1;
+			}else{
+				//2. 상세 -> LIST (curPage, 상세에서옴)
+				lc.loopCount = lc.param['curPage'];
+				lc.curPage = 1;
+				lc.startPage = 1;
+			}
+			$vo.fn.getBbsData();
+			loading.off();
+		}
+		
+	});
+})();

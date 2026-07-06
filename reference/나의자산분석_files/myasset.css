@@ -1,0 +1,490 @@
+@charset "utf-8";
+@import url("wealth-management.css");
+
+.investLevel .level1{color:#ca4655} /* 공격투자형 */
+.investLevel .level2{color:#b854c0} /* 적극투자형 */
+.investLevel .level3{color:#7d5ed1} /* 위험중립형 */
+.investLevel .level4{color:#5593c8} /* 안정형 */
+.investLevel .level5{color:#239597} /* 안정추구형 */
+.topsRating .premier{color:#8650ba} /* 프리미어 */
+.topsRating .ace{color:#ed5555} /* 에이스 */
+.topsRating .best{color:#006bd8} /* 베스트 */
+.topsRating .classic{color:#1b8898} /* 클래식 */
+.topsRating .normal{color:#47527a} /* 일반 */
+
+/* 서브메인 */
+.myassetWrap{overflow-x:hidden;background:url(/siw/common/images/myasset/bg_main_top.gif) 50% 0 no-repeat} /* BG */
+.myassetWrap .header{background:none}
+.myassetWrap .headTop .logo a{background-image:url(/siw/common/images/front/bg_layout_G.png)}
+.myassetWrap .headTop .topUtil li, .myassetWrap .headTop .topUtil li a{color:#fff}
+.myassetWrap .headTop .topUtil li:before{background-image:url(/siw/common/images/front/bg_layout_G.png);background-position:-189px 0}
+.myassetWrap .headTop .topUtil li.cert:after{background-image:url(/siw/common/images/front/bg_layout_G.png);background-position:-191px 0}
+.myassetTit{position:absolute;top:80px;width:200px;color:#000;font-size:50px;font-weight:600;line-height:59px;z-index:1}
+.myassetInfo{margin-bottom:15px;line-height:16px}
+.myassetInfo .tit{color:#000;font-size:19px}
+.myassetInfo .con{float:right}
+.myassetInfo .con li{display:inline-block;margin-left:26px;padding-left:25px;color:#666;font-size:13px;border-left:1px solid #e2e2e4}
+.myassetInfo .con li:first-child{margin-left:0;padding-left:0;border-left:0}
+.myassetInfo .con li strong{margin-left:16px;font-size:17px}
+.myassetCon{position:relative;color:#000;margin-top:60px;padding-top:48px;border-top:4px solid #000;box-sizing:border-box}
+.myassetCon:after{content:'';display:block;clear:both}
+.myassetCon .icon{display:inline-block}
+.myassetCon .icon:before, .myassetCon .icon:after{display:inline-block;vertical-align:middle;background-image:url(/siw/common/images/myasset/bg_main_icon.gif)}
+.myassetCon .stit{display:inline-block;width:180px;color:#000;font-size:34px;font-weight:bold;line-height:40px}
+.myassetCon .link{color:#666;font-size:13px}
+.myassetCon .link:after{content:'';width:40px;height:9px;margin-left:10px;background-position:-56px -34px}
+.myassetCon .tbl{line-height:1.2;border-bottom:1px solid #e2e2e4}
+.myassetCon .tbl td{height:49px;box-sizing:border-box}
+.myassetCon .tbl thead th{padding:15px 0;font-size:16px;font-weight:600;border-top:1px solid #000;border-bottom:1px solid #e2e2e4}
+.myassetCon .tbl tfoot th,
+.myassetCon .tbl tfoot td{padding:14px 0 11px;font-size:15px;border-top:1px solid #c8c8cc}
+.myassetCon .tbl tfoot td{color:#152475;font-weight:600}
+.myassetCon .tbl .hidden+tfoot{border-top:1px solid #000}
+.myassetCon .tbl tbody td{position:relative;padding:14px 0 11px;font-size:17px;border-top:1px solid #e2e2e4}
+.myassetCon .tbl tbody tr:first-child td{border-top:0}
+.myassetCon .tbl tbody td.rate{font-size:16px;color:#152475}
+.myassetCon .tbl tbody td.rate .num{font-size:20px}
+
+.myassetAll{margin-top:0}
+.myassetAll .allBuild{position:relative;height:568px}
+.myassetAll .allBuild:before{content:'';position:absolute;left:0;bottom:0;display:block;width:1900px;height:488px;margin:0 -460px;background:url(/siw/common/images/myasset/bg_main_build.gif) 50% 100% no-repeat}
+.myassetAll .allBuild .car{position:absolute;left:200px;bottom:11px;width:127px;height:50px;background:url(/siw/common/images/myasset/bg_main_car.gif) 100% 0 no-repeat}
+.myassetAll .allBuild .car.on{background-image:url(/siw/common/images/myasset/bg_main_car_on.gif)}
+.myassetAll .allBuild .status{position:relative;height:100%}
+.myassetAll .allBuild .status li{position:absolute;width:140px;text-align:center;line-height:1.1}
+.myassetAll .allBuild .status li .info{position:relative;display:inline-block;padding-top:23px}
+.myassetAll .allBuild .status li .sort{position:absolute;top:0;left:0;display:block;margin-bottom:8px;font-size:15px;white-space:nowrap}
+.myassetAll .allBuild .status .invest1{bottom:323px;left:333px;color:#a56417} /* 금융상품 */
+.myassetAll .allBuild .status .invest2{bottom:493px;left:528px;color:#09134a} /* 주식 */
+.myassetAll .allBuild .status .invest3{bottom:384px;left:626px;color:#305bb6} /* 선물옵션 */
+.myassetAll .allBuild .status .invest4{bottom:185px;left:745px;color:#534da7} /* KRX금시장 */
+.myassetAll .allBuild .status .invest5{bottom:429px;left:430px;color:#025bbe} /* 해외주식 */
+.myassetAll .allBuild .status .invest6{bottom:247px;left:852px;color:#056e5b} /* 해외선물/FX마진 */
+.myassetAll .allBuild .status .invest6 .info{padding-top:38px}
+.myassetAll .allBuild .status .invest7{bottom:207px;left:112px;color:#c1292f} /* 신용대출 */
+.myassetAll .allBuild .status .invest8{bottom:287px;left:224px;color:#0a6caa} /* 예수금 */
+.myassetAll .allBuild .status .invest9{bottom:152px;left:-11px;color:#685d3c} /* 기타 */
+.myassetAll .allBuild .status .size1{font-size:15px}
+.myassetAll .allBuild .status .size2{font-size:20px}
+.myassetAll .allBuild .status .size2 .rate{font-size:25px}
+.myassetAll .allBuild .status .size3{font-size:25px}
+.myassetAll .allBuild .status .size3 .rate{font-size:35px}
+.myassetAll .allBuild .status .size4{font-size:30px}
+.myassetAll .allBuild .status .size4 .info{position:relative;bottom:-5px}
+.myassetAll .allBuild .status .size4 .rate{font-size:45px}
+.myassetAll .allBuild .status .size5, .myassetAll .allBuild .status .size6{font-size:35px}
+.myassetAll .allBuild .status .size5 .info{position:relative;bottom:-5px}
+.myassetAll .allBuild .status .size5 .rate{font-size:55px}
+.myassetAll .allData{position:relative;margin-top:40px}
+.myassetAll .allData:after{content:'';display:block;clear:both}
+.myassetAll .allData .total{display:inline-block;font-size:20px;color:#152475;line-height:1}
+.myassetAll .allData .total .tit{display:block;margin-bottom:18px;color:#0f1010;font-size:15px}
+.myassetAll .allData .total .num{font-size:48px}
+.myassetAll .allData .tbl{float:right;width:440px;margin:-16px 0 0 90px}
+.myassetAll .allData .caution{position:absolute;left:0;bottom:0}
+.myassetAll .allData .link{position:absolute;top:120px;left:0}
+.myassetProd{padding-right:580px}
+.myassetProd .link{margin-top:28px}
+.myassetProd .prodGraph{position:absolute;top:0;right:0;bottom:-60px;width:490px;padding:80px 0 0;text-align:center;background:#f7f8f8;box-sizing:border-box}
+.myassetProd .prodGraph .txt{font-size:19px}
+.myassetProd .prodGraph .grp{position:relative;display:inline-block;width:100%;height:350px;margin:30px 0}
+.myassetProd .prodGraph .grp .h{position:absolute;top:50%;left:50%;width:66px;height:42px;margin:-21px 0 0 -33px;text-align:center;font-size:17px;line-height:21px;z-index:100}
+.myassetProd .prodGraph .noResult{position:absolute;top:50%;left:0;width:100%;margin-top:-44px}
+#goodsAssetChart{position:relative}
+#goodsAssetChart canvas{position:relative;z-index:100}
+#goodsAssetChart:before{content:'';display:block;position:absolute;top:82px;left:50%;width:175px;height:195px;margin-left:-80px;box-sizing:border-box;border-radius:200px;background:url(/siw/common/images/common/bg_pattern.png) no-repeat;z-index:1}
+#goodsAssetChart:after{content:'';display:block;position:absolute;top:112px;left:50%;width:115px;height:135px;margin-left:-50px;box-sizing:border-box;border-radius:200px;background:#f7f8f8;z-index:10}
+.myassetProd .prodGraph .legendType03{overflow:hidden;margin-right:40px}
+.myassetProd .prodGraph .legendType03 span{padding-left:40px}
+.myassetProd .prodData{margin-top:34px}
+.myassetProd .prodData .total{padding:18px 0 13px;color:#152475;font-size:20px;line-height:1;text-align:right;border-top:1px solid #000;border-bottom:1px solid #e2e2e4}
+.myassetProd .prodData .total .tit{float:left;margin-top:6px;color:#000;font-size:16px}
+.myassetProd .prodData .total .num{font-size:32px}
+.myassetPort .portGraph{position:relative;float:right;width:750px;margin-left:30px}
+.chartWrap{position:relative}
+.chartWrap:after{content:"";display:block;clear:both;zoom:1}
+.chartWrap .yList{position:absolute;top:-13px;left:-30px;width:22px;padding-right:8px}
+.chartWrap .yList li{font-size:12px;line-height:31px;text-align:right}
+.chartWrap .chartList{display:table;width:100%;border-bottom:2px solid #8c97b0;border-left:2px solid #8c97b0;background:url(/siw/common/images/myasset/bg_chart01.gif) repeat;table-layout:fixed}
+.chartWrap .chartList:after{display:none}
+.chartWrap .chartList li{display:table-cell;position:relative;height:332px !important;border-left:1px solid #dce0e7;text-align:center;vertical-align:top;backgro und:pink}
+.chartWrap .chartList li:first-child{border:none}
+.chartWrap .chartList li strong{display:block;position:absolute;bottom:-30px;left:0;width:100%;color:#000;font-size:15px;font-weight:normal}
+.chartWrap .chartList li > div{position:relative;display:inline-block;width:30px;height:310px;margin:30px 0px 0;vertical-align:bottom}
+.chartWrap .chartList li > div .stick{position:absolute;bottom:0;width:30px;background:#1598dc url(/siw/common/images/myasset/bg_stick01.gif) repeat-y}
+.chartWrap .chartList li > div.graph2 .stick{background:#314689}
+.chartWrap .chartList li > div .stick span{display:block;position:absolute;top:-23px;left:-16px;width:65px;font-size:13px;text-align:center}
+.chartWrap .chartList li > div.graph2 .stick span{top:-30px;color:#000;font-size:19px;letter-spacing:-1px}
+.chartWrap.type02{margin-left:15px;padding-bottom:75px}
+.chartWrap.type02 .chartList li strong{bottom:auto;top:-20px}
+.chartWrap .chartList li .reMoney{position:absolute;bottom:-80px;left:0;width:120%;height:auto;margin:0 0 0 -10%;text-align:center}
+.chartWrap .chartList li .reMoney p{color:#000;line-height:25px}
+.chartWrap .chartList li .reMoney p.recommend{font-size:15px;font-weight:600}
+.chartWrap .chartList li .reMoney p.recommend:before{content:'▼';display:block;color:#b2b2b2;font-size:12px;line-height:1}
+.chartWrap .chartList li .reMoney p.recommend.down{color:#2168b8}
+.chartWrap .chartList li .reMoney p.recommend.up{color:#cc1e1e}
+
+.myassetPort .portGraph .legendType02{position:absolute;bottom:24px;left:-230px;width:170px;border-top-color:#000}
+.myassetPort .portGraph .legendType02 span{display:block;margin:6px 0 0 0}
+.myassetPort .portLink{clear:both;position:relative;top:50px;margin-bottom:-10px;padding:27px 50px;background:#858c98 url(/siw/common/images/myasset/bg_main_port.gif) 100% 100% no-repeat}
+.myassetPort .portLink .txt{display:block;margin-bottom:20px;color:#fff;font-size:21px}
+.myassetPort .portLink .link{color:#fff}
+.myassetPort .portLink .link:after{background-position:-56px -45px}
+.myassetAcct .link{margin-top:30px}
+.myassetAcct .acctData{float:right;width:700px}
+.myassetAcct .acctData .tbl td{padding:18px 18px 16px}
+.myassetAcct .acctData .tbl tbody td{font-size:14px}
+.myassetAcct .acctData .tbl tbody td.addTD{font-size:15px}
+.myassetState .link{position:absolute;top:150px;left:0}
+.myassetState .stateDate{position:absolute;top:200px;left:0}
+.myassetState .stateDate span{background-image:url(/siw/common/images/myasset/bg_main_date.gif);text-indent:-9999px}
+.myassetState .stateDate .tilde{display:block;width:10px;height:28px;margin:10px auto;background-position:-130px 0}
+/*[S]260128 :: 추가 및 수정*/
+.myassetState .stateDate .year{display:inline-block;width:128px;height:47px}
+.myassetState .stateDate .year.y2017{background-position:0 -55px}
+.myassetState .stateDate .year.y2018{background-position:0 -109px}
+.myassetState .stateDate .year.y2019{background-position:0 -163px}
+.myassetState .stateDate .year.y2020{background-position:0 -217px}
+.myassetState .stateDate .year.y2021{background-position:0 -270px}
+.myassetState .stateDate .year.y2022{background-position:0 -325px}
+.myassetState .stateDate .year.y2023{background-position:0 -379px}
+.myassetState .stateDate .year.y2024{background-position:0 -433px}
+.myassetState .stateDate .year.y2025{background-position:0 -486px}
+.myassetState .stateDate .year.y2026{background-position:0 -541px}
+.myassetState .stateDate .year.y2027{background-position:0 -594px}
+.myassetState .stateDate .year.y2028{background-position:0 -649px}
+.myassetState .stateDate .year.y2029{background-position:0 -703px}
+.myassetState .stateDate .year.y2030{background-position:0 -757px}
+.myassetState .stateDate .year.y2031{background-position:0 -810px}
+.myassetState .stateDate .year.y2032{background-position:0 -865px}
+.myassetState .stateDate .year.y2033{background-position:0 -918px}
+.myassetState .stateDate .year.y2034{background-position:0 -972px}
+.myassetState .stateDate .year.y2035{background-position:0 -1026px}
+.myassetState .stateDate .year.y2036{background-position:0 -1080px}
+.myassetState .stateDate .year.y2037{background-position:0 -1134px}
+.myassetState .stateDate .year.y2038{background-position:0 -1188px}
+.myassetState .stateDate .year.y2039{background-position:0 -1242px}
+.myassetState .stateDate .year.y2040{background-position:0 -1296px}
+.myassetState .stateDate .month{display:inline-block;width:59px;height:47px;margin-left:10px;background-position:-144px 0}
+.myassetState .stateDate .month.m02{background-position:-144px -53px}
+.myassetState .stateDate .month.m03{background-position:-144px -108px}
+.myassetState .stateDate .month.m04{background-position:-144px -162px}
+.myassetState .stateDate .month.m05{background-position:-144px -217px}
+.myassetState .stateDate .month.m06{background-position:-144px -269px}
+.myassetState .stateDate .month.m07{background-position:-144px -323px}
+.myassetState .stateDate .month.m08{background-position:-143px -378px}
+.myassetState .stateDate .month.m09{background-position:-143px -432px}
+.myassetState .stateDate .month.m10{background-position:-144px -485px}
+.myassetState .stateDate .month.m11{background-position:-144px -540px}
+.myassetState .stateDate .month.m12{background-position:-144px -593px}
+/*[S]260128 :: 추가 및 수정*/
+.myassetState .stateData{float:right;width:700px;min-height:290px;margin-left:60px}
+.myassetState .stateData .sortTab{margin-bottom:20px;text-align:right;font-size:16px;line-height:1}
+.myassetState .stateData .sortForm{margin-left:26px;color:#000;background:#fff}
+.myassetState .stateData .sortForm .icon:before{content:'';width:12px;height:12px;margin:-2px 10px 0 0}
+.myassetState .stateData .sortForm .icon.sort1:before{background-position:0 -34px}
+.myassetState .stateData .sortForm .icon.sort2:before{background-position:-14px -34px}
+.myassetState .stateData .sortForm .icon.sort3:before{background-position:-28px -34px}
+.myassetState .stateData .sortForm .icon.sort4:before{background-position:-42px -34px}
+.myassetState .stateData .sortForm.on .icon{color:#006bd8}
+.myassetState .stateData .sortForm.on .icon.sort1:before{background-position:0 -48px}
+.myassetState .stateData .sortForm.on .icon.sort2:before{background-position:-14px -48px}
+.myassetState .stateData .sortForm.on .icon.sort3:before{background-position:-28px -48px}
+.myassetState .stateData .sortForm.on .icon.sort4:before{background-position:-42px -48px}
+.myassetState .toolTip{position:relative;display:block;padding:8px 18px 6px;font-size:15px;text-align:right;border:1px solid #d7e6f4;background:#ecf5fd;box-sizing:border-box}
+.myassetState .toolTip:before{content:'';position:absolute;top:12px;left:-10px;display:block;width:10px;height:16px;background:url(/siw/common/images/myasset/bg_main_icon.gif) -98px -34px no-repeat}
+.myassetState .toolTip .use{display:block;margin-bottom:8px;text-align:left}
+.myassetState .toolTip .sum{font-size:20px}
+.myassetState .toolTip .num{float:left}
+.myassetState .stateList{border-top:1px solid #000}
+.myassetState .stateList > li{margin:60px 0 40px;border-top:1px dashed #cacdd3}
+.myassetState .stateList > li.none{min-height:81px;border-top:0}
+.myassetState .stateList .date{display:inline-block;margin:-20px 0 20px;padding-right:20px;color:#666;font-size:26px;line-height:40px;background:#fff}
+.myassetState .stateList .date .day{margin-right:14px;font-size:30px}
+.myassetState .stateList .detail{overflow:hidden;position:relative;margin-left:21px}
+.myassetState .stateList .detail:before{content:'';position:absolute;top:5px;left:16px;bottom:45px;display:block;width:1px;background:#c8c8cc}
+.myassetState .stateList .detail > li{position:relative;margin-top:20px;padding-left:246px}
+.myassetState .stateList .detail > li:first-child{margin-top:0}
+.myassetState .stateList .detail .icon{position:absolute;top:5px;left:0;width:211px;min-height:32px;padding:4px 0 0 52px;font-size:17px;vertical-align:middle;box-sizing:border-box}
+.myassetState .stateList .detail .icon:before{content:'';position:absolute;top:0;left:0;width:32px;height:32px;margin:0 20px 0 0}
+.myassetState .stateList .detail .icon .sub{display:block;color:#333;font-size:14px;font-weight:normal}
+.myassetState .stateList .detail .icon.trans01:before{background-position:0 0}
+.myassetState .stateList .detail .icon.trans02:before{background-position:-34px 0}
+.myassetState .stateList .detail .icon.trans03:before{background-position:-68px 0}
+.myassetState .stateList .detail .icon.trans04:before{background-position:-102px 0}
+.myassetState .stateList .detail .icon.trans05:before{background-position:0 -65px}
+.myassetState .stateList .detail .icon.trans06:before{background-position:-34px -65px}
+.myassetState .stateList .detail .icon.trans07:before{background-position:-68px -65px}
+.myassetState .stateList .detail .icon.trans08:before{background-position:-102px -65px}
+.myassetState .stateList .detail .icon.trans09:before{background-position:0 -99px}
+.myassetState .stateList .detail .icon.trans10:before{background-position:-34px -99px}
+.myassetState .stateList .detail .icon.trans11:before{background-position:-68px -99px}
+.myassetState .stateList .detail .icon.trans12:before{background-position:-102px -99px}
+.myassetState .stateList .detail .icon.trans13:before{background-position:0 -133px}
+.myassetState .stateList .detail .icon.trans14:before{background-position:-34px -133px}
+.myassetState .stateList .detail .icon.trans15:before{background-position:0 -167px}
+.myassetState .stateList .detail .icon.trans16:before{background-position:-34px -167px}
+.myassetState .stateList .detail .icon.trans17:before{background-position:-68px -167px}
+.myassetState .stateList .detail .icon.transEtc:before{background-position:-68px -133px}
+.myassetState .none{padding-left:258px;background:url(/siw/common/images/myasset/bg_main_nodata.gif) 0 0 no-repeat;box-sizing:border-box}
+.myassetState .none .toolTip{display:block;width:100%;padding:22px 20px 21px;font-size:17px;text-align:left}
+
+/* 나의 자산현황 */
+.boxLink.assetLink01 li:before{background-image:url(/siw/common/images/myasset/bg_myasset_link01.gif)}
+.boxLink.assetLink02 li:before{background-image:url(/siw/common/images/myasset/bg_myasset_link02.gif)}
+
+.prodStatus{margin:50px 0;color:#000;border-top:4px solid #152475}
+.prodStatus .caution{padding:10px 17px;border:1px solid #c8c8cc}
+.prodStatus .statTit{position:relative;padding:29px 30px}
+.prodStatus .statTit .tit{display:inline-block;margin:0 10px -2px 0;font-size:25px;font-weight:600;line-height:1;vertical-align:middle}
+.prodStatus .statTit .btn{position:absolute;top:50%;right:18px;margin-top:-17px}
+.prodStatus .statTit .btn .btnM{margin-left:2px}
+.prodStatus .toggle{text-align:right}
+.prodStatus .btnDetail{display:inline-block;padding:0 10px;line-height:31px;border:1px solid #c8c8cc;border-radius:2px}
+.prodStatus .btnDetail:after{content:'';display:inline-block;width:19px;height:9px;margin-left:12px;background:url(/siw/common/images/common/bg_toggle.gif) 0 0 no-repeat}
+.prodStatus .btnDetail.on:after{background-position:-20px 0}
+.prodStatus .toggleCon{display:none;margin-top:15px}
+.prodStatus .toggleCon .tblH{border-top:1px solid #c8c8cc;border-bottom:1px solid #c8c8cc}
+.prodStatus .statCons{position:relative;bottom:-48px;margin:-48px 0 50px;border-bottom:0}
+.statCons{display:table;width:100%;border-top:1px solid #152475;border-bottom:1px solid #e2e2e4}
+.statCons .statTxt{display:table-cell;width:390px;padding:14px 0;vertical-align:top}
+.statCons .statTxt > li{overflow:hidden;padding:27px 20px 23px;line-height:40px;border-top:1px dashed #cacdd3}
+.statCons .statTxt > li:first-child{border-top:0}
+.statCons .statTxt .data{display:block;float:right;font-size:20px;text-align:right}
+.statCons .statTxt .data strong{display:inline-block;margin-right:6px;font-weight:normal;vertical-align:top}
+.statCons .statTxt .data strong.type1{font-size:38px}
+.statCons .statTxt .data strong.type2{font-size:28px}
+.statCons .statTxt .addTxt{display:block;text-align:right;line-height:25px}
+.statCons .statTxt .depTxt{margin:25px -20px 0;padding:20px 20px 0;line-height:35px;border-top:1px dashed #cacdd3}
+.statCons .statTxt .depTxt .data{font-size:14px}
+.statCons .statTxt .depTxt .data strong{font-size:20px;font-weight:600}
+.statCons .statTxt.type02{width:187px}
+.statCons .statTxt.type02+.statTxt.type02{padding-left:30px}
+.statCons .statGrp{position:relative;display:table-cell;padding:50px 0;text-align:right;vertical-align:middle}
+.statCons .statGrp .noResult{display:block;margin-left:50px;text-align:center}
+.statCons .statGrp .pieGrp{display:inline-block;width:510px}
+.statCons .statGrp .barGrp{display:inline-block;width:472px;height:307px}
+.statCons+.tblH{margin-top:-1px}
+.boxReport > .formWrap{position:absolute;top:48px;right:50px}
+.grpScroll{overflow-x:auto}
+
+.assetDiag{margin-top:25px;padding:0 30px;border-top:4px solid #152475;border-bottom:1px solid #152475}
+.assetDiag .noData{padding:135px 0}
+.assetDiag .diagTit{padding:24px 0;color:#000;border-bottom:1px solid #e2e2e4}
+.assetDiag .diagTit .tit{font-size:21px;font-weight:normal}
+.assetDiag .diagTit .txt{margin-top:4px;font-size:17px}
+.assetDiag .diagCon{overflow:hidden;padding:50px 0;margin:0 -25px}
+.assetDiag .diagCon .grp{position:relative;float:left;width:50%;padding:0 25px;box-sizing:border-box}
+.assetDiag .diagCon .barGraph{height:274px;background:url(/siw/common/images/myasset/bg_holding_grp01.gif) 50% 0 no-repeat}
+.assetDiag .diagCon .barGraph .data{padding:22px 0 0 65px}
+.assetDiag .diagCon .barGraph .data li{height:30px;margin-top:30px;color:#fff;line-height:30px;text-align:right}
+.assetDiag .diagCon .barGraph .data li.data1{background:#314689}
+.assetDiag .diagCon .barGraph .data li.data2{background:#1598dc}
+.assetDiag .diagCon .barGraph .data li.data3{color:#000;background:#ffdd00}
+.assetDiag .diagCon .barGraph .data li .txt{margin-right:10px}
+
+.assetGuide{overflow:hidden;margin:0 -30px}
+.assetGuide .guide{float:left;width:33.3%;padding:0 30px;box-sizing:border-box}
+
+.legendType01{display:inline-block;margin-left:25px;text-align:left}
+.legendType01 span{display:block;margin-top:8px}
+.legendType01 span:fisrt-child{margin-top:0}
+.legendType01 span:before{content:'';display:inline-block;width:13px;height:14px;margin:-2px 6px 0 0;vertical-align:middle;background:url(/siw/common/images/myasset/bg_chart_legend01.gif) 0 0 no-repeat}
+.legendType01 span.mark2:before{background-position:0 -14px}
+.legendType01 span.mark3:before{background-position:0 -28px}
+.legendType01 span.mark4:before{background-position:0 -42px}
+.legendType01 span.mark5:before{background-position:0 -56px}
+.legendType01 span.mark6:before{background-position:0 -70px}
+.legendType02{position:relative;margin-top:20px;padding-top:30px;font-size:12px;line-height:16px;border-top:1px solid #8c97b0}
+.legendType02 span{margin-left:30px;padding-left:17px}
+.legendType02 span:first-child{margin:0!important}
+.legendType02 span:before{content:'';display:inline-block;width:12px;height:12px;margin:-2px 5px 0 -17px;vertical-align:middle;background:url(/siw/common/images/myasset/bg_chart_legend02.gif) 0 0 no-repeat}
+.legendType02 span.mark2:before{background-position:0 -16px}
+.legendType02 .info{position:absolute;top:28px;right:0;font-size:13px}
+.legendType03 span{float:left;display:block;width:50%;margin-bottom:6px;text-align:left;box-sizing:border-box}
+.legendType03 span:before{content:'';display:inline-block;width:10px;height:10px;margin:-2px 5px 0 0;vertical-align:middle;background:url(/siw/common/images/myasset/bg_chart_legend03.gif) 0 0 no-repeat}
+.legendType03 span.mark2:before{background-position:-12px 0}
+.legendType03 span.mark3:before{background-position:0 -15px}
+.legendType03 span.mark4:before{background-position:-12px -15px}
+.legendType03 span.mark5:before{background-position:0 -30px}
+.legendType03 span.mark6:before{background-position:-12px -30px}
+.legendType03 span.mark7:before{background-position:-12px -45px}
+.legendType03 span.mark8:before{background-position:0 -45px}
+
+.chartBtn{position:absolute;bottom:0;right:0}
+.chartBtn .btn{position:relative;display:block;float:left;min-width:33px;padding:0 8px;color:#333;font-size:13px;line-height:31px;border:1px solid #999;box-sizing:border-box}
+.chartBtn .btn:first-child{border-right:0;border-radius:2px 0 0 2px}
+.chartBtn .btn+.btn{border-radius:0 2px 2px 0;border-left:0}
+.chartBtn .btn.on{color:#fff;background:#1598dc;border:1px solid #1598dc}
+
+.rateExpect, .rateRisk, .userTend{position:relative;display:inline-block;vertical-align:middle;box-sizing:border-box}
+.rateExpect .tit, .rateRisk .tit{position:relative;display:block;font-size:13px;z-index:1}
+.rateExpect .rate, .rateRisk .rate{position:relative;display:block;font-size:25px;line-height:1.2;z-index:1}
+.rateExpect{width:128px;height:109px;padding-top:25px;background:url(/siw/common/images/myasset/bg_port_expect.gif) 0 0 no-repeat} /* 기대수익률 */
+.rateExpect.expect02{background-position:0 -110px}
+.rateExpect.expect03{background-position:0 -220px}
+.rateExpect.expect04{background-position:0 -330px}
+.rateExpect.expect05{background-position:0 -440px}
+.rateExpect .rate{color:#cc1e1e}
+.rateRisk{width:111px;height:137px;padding-top:58px;background:url(/siw/common/images/myasset/bg_port_risk.gif) 0 0 no-repeat} /* 투자위험률 */
+.rateRisk.risk02{background-position:0 -138px}
+.rateRisk.risk03{background-position:0 -276px}
+.rateRisk.risk04{background-position:0 -414px}
+.rateRisk.risk05{background-position:0 -552px}
+.rateRisk .rate{color:#152475}
+.userTend{width:155px;height:200px;background:url(/siw/common/images/myasset/bg_user_tend.png) 0 -376px no-repeat}
+.userTend.tend02{background-position:-155px -376px}
+.userTend.tend03{background-position:-310px -376px}
+.userTendL:before{content:'';display:block;width:200px;height:230px;background:url(/siw/common/images/myasset/bg_user_tend.png) 0 0 no-repeat}
+.userTendL.tend02:before{background-position:-200px 0}
+.userTendL.tend03:before{background-position:-400px 0}
+.userTendS:before{content:'';display:block;width:124px;height:125px;background:url(/siw/common/images/myasset/bg_user_tend.png) 0 -240px no-repeat}
+.userTendS.tend02:before{background-position:-124px -240px}
+.userTendS.tend03:before{background-position:-248px -240px}
+
+.selTend{padding:40px 0;border-top:1px solid #152475;border-bottom:1px solid #e2e2e4}
+.selTend li{float:left;display:block;width:33.3%;padding:0 30px;font-size:19px;text-align:center;border-left:1px solid #e2e2e4;box-sizing:border-box}
+.selTend li:first-child{border-left:0}
+.selTend .userTendS:before{margin:0 auto 30px}
+
+.portTend{position:relative;overflow:hidden;padding:80px 130px 80px 430px;border:1px solid #152475;box-sizing:border-box}
+.portTend .userTendL{position:absolute;top:50%;left:120px;margin-top:-115px}
+.portTend .tendTit{color:#000;font-size:25px;font-weight:normal;line-height:35px}
+.portTend .tendTit .tend{color:#006bd8;font-size:29px}
+.portTend .tendTxt{margin-top:8px;font-size:17px;line-height:25px}
+
+.tendGrp{position:relative;display:inline-block}
+.tendGrp:after{content:'';position:absolute;display:block;width:10px;height:10px;border:2px solid #1c9adb;border-radius:50%;background:#fff;box-shadow:0 3px 5px rgba(0,0,0,0.2)}
+.tendGrp .chartLaybox{position:absolute;box-shadow:0 3px 5px rgba(0,0,0,0.2);z-index:1}
+/* .tendGrp .chartLaybox:before{content:'';position:absolute;top:23px;left:-8px;display:block;width:8px;height:11px;background:url(/siw/common/images/common/bg_grp_tooltip.png) 0 -12px no-repeat} */
+.tendGrp.grpType01:after{top:146px;left:80px}
+.tendGrp.grpType01 .chartLaybox{left:100px;bottom:40px}
+.tendGrp.grpType02:after{top:73px;left:196px}
+.tendGrp.grpType02 .chartLaybox{top:51px;left:216px}
+.tendGrp.grpType03:after{top:18px;left:312px}
+.tendGrp.grpType03 .chartLaybox{top:20px;left:196px}
+
+.msgTend{position:relative;margin-top:30px;padding:40px 30px 40px 190px;font-size:16px;border-top:1px solid #152475;border-bottom:1px solid #152475;background:#f7f8f8}
+.msgTend:before{content:'';position:absolute;top:30px;left:30px;display:block;width:124px;height:125px;background:url(/siw/common/images/myasset/bg_user_tend.png) 0 -240px no-repeat}
+.msgTend.tend02:before{background-position:-124px -240px}
+.msgTend.tend03:before{background-position:-248px -240px}
+.msgTend .tit{display:block;margin-bottom:8px;font-size:19px;color:#000}
+
+.chartPocket{position:relative;display:inline-block;width:735px;height:314px;padding:63px 0 10px 363px;background:url(/siw/common/images/myasset/bg_asset_pocket.gif) 0 0 no-repeat;box-sizing:border-box}
+.chartPocket:before{content:'';position:absolute;top:55px;left:338px;display:block;width:295px;height:284px;background:url(/siw/common/images/myasset/bg_pocket.png) 0 0 no-repeat;z-index:1}
+.chartPocket li{position:relative}
+.chartPocket li .info{display:table-cell;width:270px;padding-top:2px;color:#000;vertical-align:middle;line-height:1;border-top:1px solid #fff;box-sizing:border-box}
+.chartPocket li .sort{position:absolute;top:50%;right:0;display:block;width:60px;margin-top:-7px;padding-left:130px;color:#333;font-size:13px;line-height:14px;text-align:left;background:url(/siw/common/images/myasset/bg_pocket_line.png) 0 50% no-repeat;z-index:1}
+.chartPocket .size1{font-size:14px}
+.chartPocket .size1 .rate{font-size:17px}
+.chartPocket .size2{font-size:20px}
+.chartPocket .size2 .rate{font-size:25px}
+.chartPocket .size3{font-size:33px}
+.chartPocket .size3 .rate{font-size:27px}
+.chartPocket .size4{font-size:40px}
+.chartPocket .size4 .rate{font-size:50px}
+.chartPocket .bg1{background:#b8e0f4}
+.chartPocket .bg2{background:#87caed}
+.chartPocket .bg3{background:#37a7e1}
+.chartPocket .bg4{background:#0f86d3}
+
+.portRecom{display:table;table-layout:fixed;width:100%;border-top:1px solid #152475;border-bottom:1px solid #152475}
+.portRecom .recomInfo{display:table-cell;vertical-align:top;border-right:1px solid #e2e2e4;background:url(/siw/common/images/myasset/bg_port_recomm.gif) 50% 132px no-repeat}
+.portRecom .recomInfo li{float:left;width:50%;text-align:center}
+.portRecom .recomInfo li .infoTit{display:block;color:#000;font-size:16px;line-height:39px;background:#f0f1f2;border-bottom:1px solid #c8c8cc;border-left:1px solid #e2e2e4}
+.portRecom .recomInfo li:first-child .infoTit{border-left:0}
+.portRecom .recomInfo li .infoCon{padding:30px}
+.portRecom .recomInfo li .infoCon .rateRisk{margin-top:30px}
+.portRecom .recomInfo li.now .infoCon .rateExpect{background-image:url(/siw/common/images/myasset/bg_port_expect_now.gif)}
+.portRecom .recomInfo li.now .infoCon .rateRisk{background-image:url(/siw/common/images/myasset/bg_port_risk_now.gif)}
+.portRecom .recomInfo li.now .infoCon .rate{font-size:21px}
+.portRecom .recomGrp{display:table-cell;padding:50px;text-align:center;vertical-align:middle}
+.portRecom .recomGrp .chartLaybox:before{content:'';position:absolute;top:23px;left:-8px;display:block;width:8px;height:11px;background:url(/siw/common/images/common/bg_grp_tooltip.png) 0 0 no-repeat}
+.portRecom .recomGrp .chartLaybox.type02:before{background-position:0 -12px}
+.portRecom .recomGrp .grpType01{position:relative;display:inline-block}
+.portRecom .recomGrp .grpType01 .chartLaybox.type01{position:absolute;top:92px;left:145px}
+.portRecom .recomGrp .grpType01 .chartLaybox.type02{position:absolute;top:28px;left:258px}
+.portRecom .recomGrp .grpType02{position:relative;display:inline-block}
+.portRecom .recomGrp .grpType02 .chartLaybox.type01{position:absolute;top:28px;left:258px}
+.portRecom .recomGrp .grpType02 .chartLaybox.type02{position:absolute;top:92px;left:145px}
+
+.guideRecom{display:table;width:100%;margin-top:25px;padding:30px 0;border:1px solid #152475}
+.guideRecom li{position:relative;display:table-cell;padding:0 30px;text-align:center;border-left:1px solid #e2e2e4}
+.guideRecom li:first-child{border-left:0}
+.guideRecom .recomImg{display:inline-block}
+.guideRecom .recomTxt{display:inline-block;margin-left:20px;color:#666;text-align:left;vertical-align:middle}
+.guideRecom .recomTxt .data{display:block;font-size:32px;color:#152475;line-height:1.4}
+
+.portCompare{overflow:hidden;height:305px}
+.portCompare .compCon1{position:relative;float:left;width:700px;padding-top:40px;height:100%;background:#515b6c;box-sizing:border-box}
+.portCompare .compCon1:before{content:'';position:absolute;top:0;left:0;display:block;width:100%;height:40px;background:#3b4353}
+.portCompare .compCon1 .data{position:relative;float:right;width:250px;padding:35px 0;text-align:center;vertical-align:middle}
+.portCompare .compCon1 .data:first-child{float:left}
+.portCompare .compCon1 .data .h{position:absolute;top:-40px;left:0;display:block;width:100%;color:#fff;font-size:16px;line-height:40px}
+.portCompare .compCon1 .data_vs{position:relative;float:left;width:200px;height:140px;margin-top:63px;padding:46px 0 0 45px;vertical-align:middle;background:url(/siw/common/images/myasset/bg_compare_arr02.png) 0 50% no-repeat;box-sizing:border-box}
+.portCompare .compCon1 .data_vs:before{content:'';position:absolute;top:50%;left:0;display:block;width:36px;height:45px;margin-top:-23px;background:url(/siw/common/images/myasset/bg_compare_arr01.png) 0 0 no-repeat}
+.portCompare .compCon1 .data_vs.vsDown{color:#1cb1ff}
+.portCompare .compCon1 .data_vs.vsUp{color:#fd7575}
+.portCompare .compCon1 .data_vs.vsUp:before{background-position:-38px 0}
+.portCompare .compCon1 .data_vs .h{display:block;font-size:23px;line-height:1.2}
+.portCompare .compCon2{float:left;width:260px;height:100%;margin-left:20px;color:#000;text-align:center;border:1px solid #c8c8cc;box-sizing:border-box}
+.portCompare .compCon2 .tit{display:block;font-size:16px;font-weight:normal;line-height:39px;background:#f0f1f2;border-bottom:1px solid #e2e2e4}
+.portCompare .compCon2 .lst{display:table-cell;height:263px;padding:30px;font-size:18px;vertical-align:middle;box-sizing:border-box;word-break:break-all}
+.portCompare .compCon2 .lst li+li{margin-top:20px}
+.portCompare .dataGrp{position:relative;display:inline-block;color:#fff;line-height:1}
+.portCompare .dataGrp .grpVal{position:absolute;top:50%;left:0;width:100%;margin-top:-30px;text-align:center}
+.portCompare .dataGrp .grpVal .rate{display:block;margin-bottom:5px;font-size:28px;font-weight:normal}
+.portCompare .dataGrp .grpVal .rate .num{font-size:40px}
+
+.reportTitle{padding:32px 30px 28px;color:#000b;font-size:21px;line-height:1;border-top:2px solid #152475;border-bottom:1px solid #152475}
+.reportTitle .date{float:right;margin-top:4px;color:#666;font-size:13px}
+
+.prodAlert{border-top:4px solid #152475;border-bottom:1px solid #152475}
+.prodAlert+.prodAlert{margin-top:-1px}
+.prodAlert .none{padding:32px 30px 28px;font-size:17px;text-align:center;line-height:1}
+.prodAlert .alertInfo{position:relative;display:block;padding:32px 30px 28px;border-bottom:1px solid #152475}
+.prodAlert .alertInfo .acct{font-size:25px;line-height:1}
+.prodAlert .alertInfo .sort{position:absolute;top:50%;right:55px;margin-top:-11px;color:#666}
+.prodAlert .alertInfo .sort .stick{display:inline-block;margin:0 20px;color:#e2e2e4}
+.prodAlert .alertList > li{padding:18px 30px;font-size:17px;line-height:56px;border-top:1px solid #e2e2e4}
+.prodAlert .alertList > li:first-child{border-top:0}
+.prodAlert .alertList .icoSgn{float:right}
+.prodAlert .alertList .sgnNone{float:right;display:block;width:228px;padding:6px 0 6px 45px;font-size:14px;line-height:22px;background:url(/siw/common/images/common/bg_noData2.gif) 0 50% no-repeat;box-sizing:border-box}
+
+.icoSgn{display:block;width:228px;height:56px;margin:0 auto;text-indent:-9999px;background:url(/siw/common/images/myasset/bg_prod_alert.gif) 0 0 no-repeat}
+.icoSgn.sgn02{background-position:0 -60px}
+.icoSgn.sgn03{background-position:0 -120px}
+.icoSgnS{display:inline-block;width:27px;height:21px;vertical-align:middle;text-indent:-9999px;background:url(/siw/common/images/myasset/bg_prod_alert.gif) 0 -199px no-repeat}
+.icoSgnS.sgn02{background-position:-30px -199px}
+.icoSgnS.sgn03{background-position:-60px -199px}
+
+.prodSgn{padding:40px 10px;text-align:center;line-height:1;border:1px solid #c8c8cc}
+.prodSgn .guide{margin-bottom:30px;color:#000;font-size:25px}
+.prodSgn .data li{float:left;width:33.3%;color:#152475;font-size:19px}
+.prodSgn .data .icoSgn{margin-top:18px}
+
+/* 잔고 */
+.boxReport.topsRating .repCon{padding:0 45px}
+.boxReport.topsRating .title{width:325px;background:none;padding:0 40px 0 45px}
+.boxReport.topsRating .title .txt{display:block;font-size:14px;font-weight:normal}
+.boxReport.topsRating .rating{padding-left:108px}
+.boxReport.topsRating .rating span{display:block;font-size:30px}
+.boxReport.topsRating .rating span:before{content:'';display:block;margin:-23px 0 -31px -68px;width:50px;height:56px;background-image:url(/siw/common/images/common/bg_tops_rating.gif)}
+.boxReport.topsRating .rating .premium{color:#8650ba}
+.boxReport.topsRating .rating .premium:before{background-position:0 0}
+.boxReport.topsRating .rating .ace{color:#ed5555}
+.boxReport.topsRating .rating .ace:before{background-position:-70px 0}
+.boxReport.topsRating .rating .best{color:#006bd8}
+.boxReport.topsRating .rating .best:before{background-position:-140px 0}
+.boxReport.topsRating .rating .classic{color:#1b8898}
+.boxReport.topsRating .rating .classic:before{background-position:0 -76px}
+.boxReport.topsRating .rating .normal{color:#47527a}
+.boxReport.topsRating .rating .normal:before{background-position:-70px -76px}
+
+/* 통장 */
+.tblBank{table-layout:fixed;border-top:2px solid #152475;border-bottom:1px solid #152475}
+.tblBank th, .tblBank td{padding:5px;text-align:center}
+.tblBank th{border-bottom:1px solid #152475}
+.tblBank td{border-bottom:1px solid #e2e2e4}
+.tblBank tr:first-child td{border-bottom:1px solid #e6e8e8}
+.tblBank .bg{background:#f0f1f2}

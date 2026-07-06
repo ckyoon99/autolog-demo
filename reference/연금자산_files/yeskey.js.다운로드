@@ -1,0 +1,491 @@
+/**
+ * 금융인증서 관련
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2021.08.19 | 박세진 | 최초생성 |
+ */
+(function (){
+
+si.util.load("/siw/common/biz/common/rsa/", "jsbn_yeskey.js");
+si.util.load("/siw/common/biz/common/rsa/", "rsa_yeskey.js");
+si.util.load("/siw/common/biz/common/rsa/", "prng4.js");
+si.util.load("/siw/common/biz/common/rsa/", "rng.js");
+si.util.load("/siw/common/js/", "array.from.polyfill.js");
+si.util.load("/siw/common/js/", "string.polyfill.js");
+
+si.service('yeskey', function($svc) {
+    var log = $svc.logger('yeskey');
+    var installed = false;
+    var SIGNTYPE = {
+    	LOGIN: 'LOGIN',
+    	TRANSFER: 'TRANSFER',
+    	PRDT: 'PRDT',
+    	CONTRACT: 'CONTRACT',
+    	PAYMENT: 'PAYMENT',
+    	CERT: 'CERT',
+    	DATA: 'DATA',
+    	MANAGEMENT: 'MANAGEMENT',
+    	ETC: 'ETC'
+    };
+    
+    var http = $svc.get('http');
+    var ajax = $svc.get('ajax');
+    var lpopup = $svc.get('lpopup');
+    var uiloading = $svc.get('uiLoading');
+    var rsa;
+    var isModernBrowser = window.crypto;
+    
+    return {
+    	SIGNTYPE: SIGNTYPE,
+    	initSdk: initSdk,
+    	sign: sign,
+    	compSign: compSign,
+    	isInstalled: isInstalled,
+    	manage: manage,
+    	getPcIdentity: getPcIdentity,
+    	passwordCompSign: passwordCompSign
+    };
+    
+    /**
+     * 금융인증서 sdk 호출
+     */
+    function initSdk(){
+    	var deferred = $.Deferred();
+    	
+    	if(!installed){
+    		uiloading.on();
+    		
+    		$.ajax({
+    			url: '/siw/common/get-yeskey-orgcode/data.do',
+    			async: false,
+    			success: function(resp){
+    				var finCertUrl = resp.body.finCertUrl;
+    				var finOrgCode = resp.body.finOrgCode;
+    				var finApiKey = resp.body.finApiKey;
+    				var date = new Date();
+    				var dateStr = date.getFullYear() + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2);
+    	    		//네트워크 체크
+    	    		$.ajax({
+    	    			url: finCertUrl + '?dt=' + dateStr,
+    	    			type: 'HEAD',
+    	    			async: false,
+    	    			success: function(){
+    	    				//금융인증 sdk를 하루 한번만 다운로드 하기 위한 설정
+    	                    var scriptElem = document.createElement('script');
+    	                    scriptElem.async = false;
+    	                    scriptElem.src = finCertUrl + '?dt=' + dateStr;
+    	                    document.querySelector('body').appendChild(scriptElem);
+    	                    
+    	                    scriptElem.onload = function (e, f) {
+    	                        FinCert.Sdk.init({
+    	                          orgCode: finOrgCode,
+    	                          apiKey: finApiKey,
+    	                          lang: 'kor',
+    	                          success: function() {
+    	                        	  installed = true;
+    	                        	  
+    	                        	  if(si.data.isLogin()){
+    	                        		  setCompSignKey();
+    	                        	  }
+    	                        	  	
+    	                        	  uiloading.off();
+    	                        	  deferred.resolve();
+    	                          },
+    	                          fail: function(error) {
+    	                        	  deferred.reject(getErrorMessage(error));
+    	                          }
+    	                        });
+    	                    };
+    	                    
+    	    			}, error: function(){
+    	    				deferred.reject(getErrorMessage({code: '연결실패', message: '금융인증서 SDK 모듈 호출에 실패했습니다.'}));
+    	    			}, complete: function(){
+    	    				uiloading.off();
+    	    			}
+    	    		});
+    			}
+    		});
+    	
+    	} else {
+    		deferred.resolve();
+    	}
+    	
+		return deferred.promise();
+    }
+    
+    /**
+     * nonce 요청
+     * 
+     * @param {string} signType 서명타입
+     */
+    function getNonce(signType){
+    	var param = {};
+    	
+    	if(signType == SIGNTYPE.LOGIN){
+    		param.loginUseYn = 'Y';
+    	}
+    	
+    	return ajax.post('/siw/common/get-yeskey-nonce/data.do', param, true);
+    }
+    
+    /**
+     * 금융인증서 전자서명
+     * 
+     * @param {string} signType 서명타입
+     * @param {string} reqParam 원문으로 들어갈 요청 파라미터
+     * @param {boolean} 원문포함여부 (원문없는경우:true)
+     * @param {boolean} 검증여부 (default:true)
+     */
+    function sign(signType, reqParam, withoutContent, validation){
+    	
+    	if(typeof withoutContent == 'object'){
+    		reqParam = withoutContent;
+    		withoutContent = false;
+    	}
+    	
+    	var deferred = $.Deferred();
+    	var nonceId = '';
+    	uiloading.on();
+    	
+    	if(validation !== false) {
+    		validation = true;
+    	}
+    	
+    	if(installed){
+    		return signProcess();
+    	} else {
+    		return initSdk().then(function(){
+    			return signProcess();
+    		});
+    	}
+    	
+    	function signProcess(){
+    		var hashedPromise = null;
+        	var signParams = {};
+        	
+        	function callSign(){
+        		signParams.success = function(result) {
+                	//서명에 성공하면 검증
+                	var validationParam  = {
+    					'withoutContent': withoutContent, 
+    					'signedValue': result.signedVals[0],
+    					'rValue': result.rValue,
+    					'nonceId': nonceId
+    				};
+                	
+                	if(validation) {
+                		http.post("/siw/customer-center/certification/72000102/data.do", validationParam).then(function(body){
+        					var rspCode = body.rspCode;
+        					uiloading.off();
+        					
+        					if(rspCode == '0'){ 
+        						//검증까지 성공하면
+        	                    var signResult = {
+        	                    	dn: body['subject_dn'],
+        	                    	r_value: result['rValue'],
+        	                    	signed_data: result['signedVals'][0],
+        	                    	plain_text: '',
+        	                    	rspCode: rspCode,
+        	                    	certSeqNum: result.certSeqNum.toString(),
+        	                    	valid_id: body['valid_id']
+        	                    };
+        	                
+        	                	if(!withoutContent) {
+        	                		signResult.plain_text = JSON.stringify(signParams.content.plainText.plainTexts[0]);
+        	                	}
+        	                	
+        	                	deferred.resolve(signResult);
+        					} else {
+        						lpopup.alert(body.rspMsg);
+        					}
+        					
+        				}, function(){
+        					uiloading.off();
+        					lpopup.alert('서명 검증에 실패하였습니다.');
+        				});
+                	} else {
+                		uiloading.off();
+                		
+                		reqParam.dn = '';
+                		reqParam.signed_data = result.signedVals[0];
+                		reqParam.plain_text = JSON.stringify(signParams.content.plainText.plainTexts[0]);
+                		
+                		deferred.resolve(reqParam);
+                	}
+                	
+                };
+                
+                signParams.fail = function(error) {
+                	uiloading.off();
+                	
+                	if(error.code != 800000) {
+                		deferred.reject(getErrorMessage(error));
+                	}
+                };
+                
+                FinCert.Sdk.sign(signParams);
+        	}
+        	
+        	var noncePromise = getNonce(signType).then(function(resp){
+        		var nonce = resp.data.body.nonce;
+        		nonceId = resp.data.body.nonceId;
+        		
+        		if(nonce == undefined || nonce == ''){
+        			var msg = '금융결제원 서비스 점검으로 인해 서비스 이용이 제한됩니다. 공동인증서 등 다른 인증수단으로 로그인하시면 모든 서비스를 이용하실 수 있습니다. 서비스 이용에 불편을 드려 죄송합니다.'
+        			uiloading.off();
+        			lpopup.alert(msg);
+        			throw new Error(msg);
+        		}
+        		
+        		var certSeqNum = resp.data.body.certSeqNum;
+        		
+        		if(withoutContent == undefined){
+            		withoutContent = false; // 값이 안오면 원문있는것으로 간주
+            	}
+        		
+                signParams.signFormat = {type: 'CMS'};
+                signParams.signFormat.CMSInfo = {includeR: true};
+                signParams.content = {};
+                signParams.algorithms = 'RSASSA-PKCS1-v1_5_SHA256';
+                signParams.view = {};
+                signParams.info = {'signType': getSignTypeCode(signType)};
+                
+                if(certSeqNum !== undefined && certSeqNum.length > 0){
+                	//인증서 일련번호로 로그인한 후라면 로그인한 인증서만 뜨도록
+                	signParams.view.certSeqNum = certSeqNum; 
+                }
+                
+                if(withoutContent) { // 원문없는서명
+                	signParams.signFormat.CMSInfo.withoutContent = true;
+                	var encodedMsg = '';
+                	
+                	if(window.TextEncoder){
+                		encodedMsg = new TextEncoder().encode(nonce);
+                	} else {
+                		var utf8 = unescape(encodeURIComponent(nonce));
+                		var utf8Length = utf8.length;
+                		var encodedMsg = new Uint8Array(utf8Length);
+                		
+                		for(var i = 0; i < utf8Length; i++){
+                			encodedMsg[i] = utf8.charCodeAt(i);
+                		}
+                		
+                	}
+                	
+                	if(isModernBrowser) {
+                		hashedPromise = window.crypto.subtle.digest('SHA-256', encodedMsg);
+                	} else {
+                		hashedPromise = window.msCrypto.subtle.digest('SHA-256', encodedMsg);
+                	}
+                	
+                	
+                } else { // 원문있는서명
+                	signParams.signFormat.CMSInfo.withoutContent = false;
+                	signParams.content.plainText = {plainTexts: [{'nonce': nonce}], encoding: 'EUC-KR'};
+                	
+                	if(reqParam){
+                    	signParams.content.plainText.plainTexts[0].signData = JSON.stringify(reqParam);
+                    }
+                }
+                
+        	}, function(error){
+        		lpopup.alert('Nonce Key 발급에 실패하였습니다.[2]');
+        	});
+        	
+        	if(withoutContent){
+        		if(isModernBrowser){
+        			return hashedPromise.then(function(digestBuffer){
+            			var hashArray = Array.from(new Uint8Array(digestBuffer));
+                        var hashHex = hashArray.map(function(b){return b.toString(16).padStart(2, '0')}).join('');
+                        signParams.content.hash = {};
+                        signParams.content.hash.hashes = [hashHex];
+                        signParams.content.hash.hashAlgorithm = 'SHA-256';
+                        callSign();
+                        return deferred.promise();
+            		});
+        		} else {
+        			hashedPromise.oncomplete = function(e){
+        				var digestBuffer = e.target.result;
+        				var hashArray = Array.from(new Uint8Array(digestBuffer));
+                        var hashHex = hashArray.map(function(b){return b.toString(16).padStart(2, '0')}).join('');
+                        signParams.content.hash = {};
+                        signParams.content.hash.hashes = [hashHex];
+                        signParams.content.hash.hashAlgorithm = 'SHA-256';
+                        callSign();
+        			}
+        			
+        			 return deferred.promise();
+        		}
+        		
+        	} else {
+        		callSign();
+        		return deferred.promise();
+        	}
+    	}
+    	
+    }
+    
+    /**
+     * 금융인증서 비밀번호 받는 축약서명
+     * 
+     *  @param {string} reqParam 원문으로 들어갈 요청 파라미터
+     *  
+     *  @return {promise}
+     */
+    function passwordCompSign(params){
+    	return sign(SIGNTYPE.ETC, params, false, false).then(function(){
+    		return compSign(params);
+    	});
+    }
+    
+    /**
+     * 금융인증서 축약서명
+     * 
+     *  @param {string} reqParam 원문으로 들어갈 요청 파라미터
+     *  
+     *  @return {promise}
+     */
+    function compSign(params){
+    	var deferred = $.Deferred();
+    	
+    	if(rsa == undefined) {
+    		return setCompSignKey().then(function(){
+    			return compSignProcess();
+    		});
+    	} else {
+    		return compSignProcess();
+    	}
+    	
+    	function callback(txt){
+    		try {
+    			var $userInfo = $svc.get('$userInfo');
+    			var signed_data = rsa.encrypt(txt);
+    			params.dn = $userInfo.dn;
+    			params.signed_data = signed_data;
+    			params.plain_text = txt;
+    			
+    			deferred.resolve(params);
+    		} catch(e){
+    			deferred.reject();
+    		}
+    	}
+    	
+    	function compSignProcess(){
+    		var plainText = JSON.stringify(params); //245바이트 제한
+        	
+    		if(isModernBrowser){
+    			new Blob([plainText]).slice(0, 245).text().then(function(txt){
+    				callback(txt);
+            	});
+    		} else {
+    			var data = new Blob([plainText]).slice(0, 245);
+    			var reader = new FileReader();
+    			reader.readAsText(data);
+    			reader.onload = function(){
+    				callback(reader.result);
+    			}
+    		}
+        	
+        	return deferred.promise();
+    	}
+    	
+    }
+    
+    /**
+     * 금융인증서 관리
+     */
+    function manage(successCallback, failCallback){
+    	FinCert.Sdk.manage({
+    		'success': function(){
+    			//금융인증sdk ui 제거될때 호출
+    			successCallback();
+    		}, 
+    		'fail': function(error){
+    			//인증서 관리기능 도중에 실패하는 경우 최종적으로 호출
+    			failCallback(getErrorMessage(error));
+    		}
+    	});
+    }
+    
+    /**
+     * 축약서명 키 세팅
+     */
+    function setCompSignKey(){
+    	return http.post('/siw/common/get-yeskey-rsa/data.do', {}).then(function(result){
+    		if(result.success) {
+    			rsa = new RSAKey_();
+        		rsa.setPublic(result.publicKeyModulus, result.publicKeyExponent);
+    		}
+    	});
+    }
+    
+    /**
+     * 금융인증서 sdk 설치 여부 확인
+     */
+    function isInstalled(){
+    	var deferred = $.Deferred();
+    	
+		if(installed && typeof FinCert === 'object'){
+			deferred.resolve();
+		} else {
+			deferred.reject('금융인증서 SDK가 설치되지 않았습니다.');
+		}
+		
+		return deferred.promise();
+    }
+    
+    /**
+     * 단말정보 조회
+     * 
+     * 금융인증서는 단말정보 조회를 안할거지만 공동인증서(sign.js)와 맞추기 위함
+     */
+    function getPcIdentity(){
+    	var deferred = $.Deferred();
+    	deferred.resolve({});
+    	return deferred.promise();
+    }
+    
+    /**
+     * 사용자 전자서명 거래 종류값 반환
+     */
+    function getSignTypeCode(signType){
+    	var code = '99';
+    	
+    	switch(signType){
+	    	case SIGNTYPE.LOGIN: //로그인(증권)
+	    		code = '11'; break;
+	    	case SIGNTYPE.TRANSFER: //송금(이체, 자동송금관리 등)
+	    		code = '02'; break;
+	    	case SIGNTYPE.PRDT: //금융상품가입/해지(예적금,대출,보험,펀드 등)
+	    		code = '03'; break;
+	    	case SIGNTYPE.CONTRACT: //전자계약체결/해지(근로, 공급, 용역, 거래, 각종 동의서 등)
+	    		code = '04'; break;
+	    	case SIGNTYPE.PAYMENT: //납부/결제(자동납부관리, 공과금 납부, 카드대금 결제 등)
+	    		code = '05'; break;
+	    	case SIGNTYPE.CERT: //증명서발급(당사는 발급이 안되서 쓸일이 없을 것 같음)
+	    		code = '06'; break;
+	    	case SIGNTYPE.DATA: //자산연동(오픈뱅킹, 마이데이터 등)
+	    		code = '07'; break;
+	    	case SIGNTYPE.MANAGEMENT: //인증수단관리(인증서, 보안매체 폐지 등), 보안설정(비번 변경)
+	    		code = '08'; break;
+	    	case SIGNTYPE.ETC: //기타
+	    		code = '99'; break;
+    		
+    	}
+    	
+    	return code;
+    	
+    }
+
+    /**
+     * 에러 메지시를 반환한다.
+     * 
+     * @param {object} error 에러 코드와 메시지가 담긴 오브젝트
+     */
+    function getErrorMessage(error){
+    	return '['+ error.code + '] ' + error.message;
+    }
+ 
+});
+
+})();

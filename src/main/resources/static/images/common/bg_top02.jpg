@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>신한투자증권</title>
+<link href="/siw/common/images/shinhan.ico" rel="shortcut icon" />
+<link href="/siw/common/css/common.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="errorWrapper" class="errorWrapper">
+<div id="header" class="errorHead"><div class="headArea"><p class="logo"><a href="/siw/">신한투자증권</a></p></div></div><hr />
+<div id="errorContents" class="errorContents">
+<table class="tblError">
+    <tr>
+        <td>
+            <div class="errorCont error404">
+                <strong>서비스 이용에 불편을 드려 대단히 죄송합니다.2</strong>
+                <span>요청하신 페이지를 찾을 수가 없습니다.<br />찾으시는 페이지가 변경 혹은 삭제되어 페이지를 찾을 수 없습니다.</span>
+                <a href="/siw/" class="btnL action">홈화면 이동</a>
+                </div>
+        </td>
+    </tr>
+</table>
+</div>
+</div>
+<hr />
+<div id="errorFooter" class="errorFooter"><p>COPYRIGHTⓒ2016 SHINHAN SECURITIES CO.,LTD. All Rights Reserved.</p></div>
+</body>
+</html>

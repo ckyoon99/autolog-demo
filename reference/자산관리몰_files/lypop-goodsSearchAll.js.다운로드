@@ -1,0 +1,31 @@
+/**
+ * 전체상품 조회 안내
+ *
+ * | DATE | NAME | DESC |
+ * |------|------|------|
+ * | 2025.12.17  | 임현정 | 최초생성 |
+ */
+(function (){
+	si.controller('layerGoodsSearchAll', function($vo, $svc) {
+		var log = $svc.logger('layerGoodsSearchAll');
+		var util = $svc.get('util');
+		var lpopup = $svc.get('lpopup');
+	
+		var lc = {};	// 로컬변수
+		$vo.vl = {};	// ko 변수 관리
+		$vo.on = {};	// ko 이벤트 관리
+	
+		// 변수 바인딩
+		// ==================================================
+		// param
+		lc.param = lpopup.getParam($vo);
+		// els여부 
+		$vo.vl.elsYn = ko.observable(lc.param && lc.param.menu === 'els' ? 'Y' : 'N');
+		
+		// 이벤트 바인딩
+		// ==================================================
+		$vo.on.close = function() {
+			$svc.get('lpopup').close($vo);
+		};
+	});
+})();
