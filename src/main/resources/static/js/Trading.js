@@ -1,3 +1,9 @@
+/**
+ * Screen: 홈페이지 > 트레이딩 > 환전내역조회
+ * Author: 김신한
+ * Desc: 환전내역조회 Ajax 렌더링 로직
+ * WR: WR26210-DP1(2026-07-07) 신규 화면
+ */
 var Trading = {
 
     init: function() {

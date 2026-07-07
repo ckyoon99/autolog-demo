@@ -1,3 +1,9 @@
+<%--
+ * Screen: 홈페이지 > 트레이딩 > 환전내역조회
+ * Author: 김신한
+ * Desc: 환전내역조회 뷰페이지
+ * WR: WR26210-DP1(2026-07-07) 신규 화면
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
