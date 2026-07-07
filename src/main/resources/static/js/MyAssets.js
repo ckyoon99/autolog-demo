@@ -1,3 +1,9 @@
+/**
+ * Screen: 홈페이지 > 나의 자산분석 > 전계좌현황
+ * Author: 김신한
+ * Desc: 전계좌현황 Ajax 렌더링 및 자산구성 원그래프 표시 로직
+ * WR: WR26207-DP1(2026-07-07) 신규 화면
+ */
 var MyAssets = {
     init: function() {
         $.ajax({

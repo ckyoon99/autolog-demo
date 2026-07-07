@@ -1,3 +1,9 @@
+<%--
+ * Screen: 홈페이지 > 나의 자산분석 > 전계좌현황
+ * Author: 김신한
+ * Desc: 전계좌현황 뷰페이지
+ * WR: WR26207-DP1(2026-07-07) 신규 화면
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
