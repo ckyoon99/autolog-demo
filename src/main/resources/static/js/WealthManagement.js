@@ -1,3 +1,9 @@
+/**
+ * Screen: 홈페이지 > 자산관리몰 > 장외채권매매
+ * Author: 김신한
+ * Desc: 장외채권매매 채권목록 Ajax 렌더링 로직
+ * WR: WR26208-DP1(2026-07-07) 신규 화면
+ */
 var WealthManagement = {
 
     init: function() {
