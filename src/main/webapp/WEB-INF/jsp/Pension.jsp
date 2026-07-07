@@ -1,3 +1,9 @@
+<%--
+ * Screen: 홈페이지 > 연금자산 > 연금펀드 검색
+ * Author: 김신한
+ * Desc: 연금펀드 검색 뷰페이지
+ * WR: WR26209-DP1(2026-07-07) 신규 화면
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
