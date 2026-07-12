@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 전계좌현황 Ajax 렌더링 및 자산구성 원그래프 표시 로직
  * WR: WR26207-DP1(2026-07-07) 신규 화면
+ * WR: WR26212-DP1(2026-07-12) 전계좌현황 자산구성 원그래프 composition 필드 연동
  */
 var MyAssets = {
     init: function() {
@@ -42,15 +43,12 @@ var MyAssets = {
 
     renderPieChart: function(acct) {
         if (!acct) return;
-        try {
-            var result = AssetPieChart.render('assetPieChart', acct);
-            $('#finProdPct').text(result.pcts[0]);
-            $('#stockPct').text(result.pcts[1]);
-            $('#depositPct').text(result.pcts[2]);
-        } catch (e) {
-            console.error('[AssetPieChart]', e.message);
-            $('#assetPieLegend').html('<span class="data-loading">차트를 표시할 수 없습니다.</span>');
-        }
+        /* WR26212-DP1: composition 객체로 차트 렌더 */
+        var composition = acct.composition;
+        var result = AssetPieChart.render('assetPieChart', composition);
+        $('#finProdPct').text(result.pcts[0]);
+        $('#stockPct').text(result.pcts[1]);
+        $('#depositPct').text(result.pcts[2]);
     },
 
     renderMore: function(accounts) {

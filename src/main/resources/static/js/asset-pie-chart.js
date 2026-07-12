@@ -1,7 +1,8 @@
 /**
- * 자산 구성 원그래프 (Chart.js 래퍼)
- * - 라이브러리: Chart.js 4.x (CDN)
- * - 추후 에러 로그 데모: render() 실패·데이터 오류 시 throw
+ * Screen: 홈페이지 > 나의 자산분석 > 전계좌현황
+ * Author: 김신한
+ * Desc: 자산구성 원그래프 Chart.js 래퍼
+ * WR: WR26212-DP1(2026-07-12) 전계좌현황 자산구성 원그래프 composition 필드 연동
  */
 var AssetPieChart = {
     COLORS: {

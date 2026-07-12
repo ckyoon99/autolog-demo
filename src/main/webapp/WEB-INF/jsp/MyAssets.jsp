@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 전계좌현황 뷰페이지
  * WR: WR26207-DP1(2026-07-07) 신규 화면
+ * WR: WR26212-DP1(2026-07-12) 전계좌현황 자산구성 원그래프 composition 필드 연동
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
