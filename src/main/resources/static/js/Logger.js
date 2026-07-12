@@ -23,7 +23,13 @@ class Logger {
 
 		Logger.hookXHR();
 		Logger.hookNavigation();
+		Logger.hookJQueryDeferred();
 		Logger.isInitialized = true;
+		console.log('[Logger] initialized', {
+			endpoint: Logger.endpoint,
+			sessionId: Logger.sessionId,
+			path: window.location.pathname
+		});
 	}
 
 	static handleLoad() {
@@ -107,6 +113,7 @@ class Logger {
 	}
 
 	static handleError(event) {
+		console.log('[Logger] error event received', event.message || event.error);
 		Logger.captureException(event.error || {
 			message: event.message,
 			stack: 'at ' + event.filename + ':' + event.lineno + ':' + event.colno
@@ -115,6 +122,7 @@ class Logger {
 
 	static handlePromiseRejection(event) {
 		var reason = event.reason || {};
+		console.log('[Logger] unhandledrejection received', reason.message || reason);
 		Logger.captureException({
 			message: reason.message || String(reason),
 			stack: reason.stack || null
@@ -149,6 +157,7 @@ class Logger {
 	}
 
 	static captureException(error) {
+		console.log('[Logger] exception captured', error.message || String(error));
 		Logger.send({
 			type: 'exception',
 			message: error.message || String(error),
@@ -239,6 +248,25 @@ class Logger {
 			});
 
 			return originalSend.apply(this, arguments);
+		};
+	}
+
+	static hookJQueryDeferred() {
+		if (typeof jQuery === 'undefined' || !jQuery.Deferred) {
+			return;
+		}
+
+		var previousHook = jQuery.Deferred.exceptionHook;
+		jQuery.Deferred.exceptionHook = function(error, stack) {
+			if (previousHook) {
+				previousHook(error, stack);
+			}
+
+			console.log('[Logger] jQuery deferred error received', error && error.message ? error.message : error);
+			Logger.captureException({
+				message: error && error.message ? error.message : String(error),
+				stack: stack || (error && error.stack) || null
+			});
 		};
 	}
 

@@ -12,4 +12,5 @@ target/
 
 # 로그 파일
 logs/
+data/client-logs/
 *.log
