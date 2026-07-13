@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 장외채권매매 DB 조회 Ajax 데이터
  * WR: WR26208-DP1(2026-07-07) 신규 화면
+ * WR: WR26213-DP1(2026-07-13) 장외채권매매 채권상세 테이블(TB_OTC_BOND_DTL) 조인 조회 반영
 --%>
 <%@ page contentType="application/json;charset=UTF-8" language="java" trimDirectiveWhitespaces="true"
          import="java.sql.*,com.autolog.util.JspDbUtil" %>
