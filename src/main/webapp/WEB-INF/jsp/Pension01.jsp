@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 연금펀드 수익률 Top3 DB 조회 Ajax 데이터
  * WR: WR26209-DP1(2026-07-07) 신규 화면
+ * WR: WR26214-DP1(2026-07-26) 연금펀드 검색 RISK_TYPE_NM 컬럼 조회 추가
 --%>
 <%@ page contentType="application/json;charset=UTF-8" language="java" trimDirectiveWhitespaces="true"
          import="java.sql.*,com.autolog.util.JspDbUtil" %>

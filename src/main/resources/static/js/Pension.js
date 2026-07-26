@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 연금펀드 수익률 Top3 Ajax 렌더링 로직
  * WR: WR26209-DP1(2026-07-07) 신규 화면
+ * WR: WR26214-DP1(2026-07-26) 연금펀드 검색 RISK_TYPE_NM 컬럼 조회 추가
  */
 var Pension = {
 
@@ -65,4 +66,3 @@ var Pension = {
     }
 
 };
-
