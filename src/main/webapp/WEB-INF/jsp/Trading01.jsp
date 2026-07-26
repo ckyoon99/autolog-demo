@@ -3,6 +3,7 @@
  * Author: 김신한
  * Desc: 환전내역조회 DB 조회 Ajax 데이터
  * WR: WR26210-DP1(2026-07-07) 신규 화면
+ * WR: WR26215-DP1(2026-07-26) 환전내역조회 tradeList 필드명 변경 반영
 --%>
 <%@ page contentType="application/json;charset=UTF-8" language="java" trimDirectiveWhitespaces="true"
          import="java.sql.*,com.autolog.util.JspDbUtil" %>
