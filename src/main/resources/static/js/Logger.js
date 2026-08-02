@@ -158,10 +158,10 @@ class Logger {
 
 	static captureException(error) {
 		console.log('[Logger] exception captured', error.message || String(error));
-		Logger.send({
+		var payload = {
 			type: 'exception',
 			message: error.message || String(error),
-			stack: error.stack || null,
+			stack: error.stack != null ? error.stack : null,
 			breadcrumbs: Logger.breadcrumbs.slice(),
 			timestamp: new Date().toISOString(),
 			sessionId: Logger.sessionId,
@@ -169,7 +169,14 @@ class Logger {
 			path: window.location.pathname,
 			userName: Logger.userName,
 			menuTitle: Logger.menuTitle
-		});
+		};
+		if (error.apiError) {
+			payload.apiError = error.apiError;
+		}
+		if (error.xhr) {
+			payload.xhr = error.xhr;
+		}
+		Logger.send(payload);
 	}
 
 	static send(payload) {
@@ -191,6 +198,72 @@ class Logger {
 			localStorage.setItem(key, id);
 		}
 		return id;
+	}
+
+	static parseJsonResponse(xhr) {
+		try {
+			var contentType = xhr.getResponseHeader('Content-Type') || '';
+			if (contentType.indexOf('application/json') >= 0 && xhr.responseText) {
+				return JSON.parse(xhr.responseText);
+			}
+		} catch (e) {
+			console.warn('[Logger] JSON parse failed', e);
+		}
+		return null;
+	}
+
+	static extractApiError(data) {
+		if (!data || !data.error) {
+			return null;
+		}
+		var apiError = {
+			error: data.error,
+			message: data.message || null
+		};
+		if (data.code) {
+			apiError.code = data.code;
+		}
+		if (data.sql) {
+			apiError.sql = data.sql;
+		}
+		return apiError;
+	}
+
+	static buildXhrContext(xhr) {
+		return {
+			method: xhr._loggerMethod || null,
+			url: xhr._loggerUrl || null,
+			status: xhr.status
+		};
+	}
+
+	static buildApiErrorMessage(apiError, xhr) {
+		var msg = 'API Error: ';
+		if (apiError.code) {
+			msg += apiError.code + ' ';
+		}
+		msg += apiError.message || apiError.error || '';
+		if (xhr && xhr._loggerUrl) {
+			msg += ' (' + xhr._loggerUrl + ')';
+		}
+		return msg.trim();
+	}
+
+	static captureXhrException(xhr, data) {
+		var apiError = Logger.extractApiError(data);
+		var xhrContext = Logger.buildXhrContext(xhr);
+		var message = apiError
+			? Logger.buildApiErrorMessage(apiError, xhr)
+			: 'XHR HTTP Error: ' + xhr.status + ' ' + xhr.statusText + ' (' + xhr._loggerUrl + ')';
+		var payload = {
+			message: message,
+			stack: null,
+			xhr: xhrContext
+		};
+		if (apiError) {
+			payload.apiError = apiError;
+		}
+		Logger.captureException(payload);
 	}
 
 	static hookXHR() {
@@ -225,22 +298,13 @@ class Logger {
 
 				try {
 					if (xhr.status < 200 || xhr.status >= 400) {
-						Logger.captureException({
-							message: 'XHR HTTP Error: ' + xhr.status + ' ' + xhr.statusText + ' (' + xhr._loggerUrl + ')',
-							stack: new Error().stack
-						});
+						Logger.captureXhrException(xhr, Logger.parseJsonResponse(xhr));
 						return;
 					}
 
-					var contentType = xhr.getResponseHeader('Content-Type') || '';
-					if (contentType.indexOf('application/json') >= 0 && xhr.responseText) {
-						var data = JSON.parse(xhr.responseText);
-						if (data && data.error) {
-							Logger.captureException({
-								message: 'API Error: ' + (data.message || data.error),
-								stack: new Error().stack
-							});
-						}
+					var data = Logger.parseJsonResponse(xhr);
+					if (data && data.error) {
+						Logger.captureXhrException(xhr, data);
 					}
 				} catch (e) {
 					console.warn('[Logger] XHR inspect error', e);
